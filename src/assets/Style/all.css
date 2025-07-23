@@ -1,7 +1,6 @@
 /* GLOBAL STYLES */
 body {
   margin: 0;
-  padding: 15px;
   background-color: #f0f2f5;
   display: flex;
   justify-content: center;
@@ -11,7 +10,33 @@ body {
   color: #333;
   box-sizing: border-box;
 }
-
+.homepage {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  flex-direction: column;
+  padding: 0px;
+  margin: 0px;
+  .top-nav {
+    height: 60px;
+    display: flex;
+    background-color: #0056b3;
+    a,
+    .a {
+      display: flex;
+      width: 60px;
+      height: 60px;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+  }
+  .body {
+    display: flex;
+    flex: 1;
+    background-color: #d3d3d3;
+  }
+}
 /* UTILITY CLASSES */
 .flex {
   display: flex;
@@ -122,40 +147,4 @@ input:focus {
 
 .signup_link:hover {
   color: #0056b3;
-}
-
-@media (min-width: 768px) {
-  .login_form {
-    padding: 40px 30px;
-    gap: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    width: 420px;
-    font-size: 18px;
-    padding-bottom: 70px;
-  }
-
-  .form_title {
-    font-size: 32px;
-    margin-bottom: 20px;
-  }
-
-  .form_input {
-    gap: 15px;
-  }
-
-  input {
-    padding: 12px 15px;
-    font-size: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-
-  .form_submit {
-    padding: 12px 25px;
-    font-size: 18px;
-    margin-top: 10px;
-  }
-
-  .form_footer {
-    font-size: 16px;
-  }
 }
