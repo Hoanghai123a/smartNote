@@ -1,4 +1,4 @@
-/* GLOBAL STYLES */
+@import "tailwindcss";
 body {
   margin: 0;
   background-color: #f0f2f5;
@@ -37,24 +37,6 @@ body {
     background-color: #d3d3d3;
   }
 }
-/* UTILITY CLASSES */
-.flex {
-  display: flex;
-}
-
-.flexc {
-  display: flex;
-  flex-direction: column;
-}
-
-.pd5 {
-  padding: 5px;
-}
-
-.pd10 {
-  padding: 10px;
-}
-
 /* LOGIN FORM STYLES */
 .login_form {
   display: flex;
@@ -71,8 +53,6 @@ body {
   font-size: 16px;
   text-align: center;
   box-sizing: border-box;
-
-  /* Cần một chút điều chỉnh để form_footer có thể nằm ở cuối */
   position: relative; /* Đặt position cho cha để footer có thể position: absolute */
   padding-bottom: 70px; /* Thêm padding dưới để footer có không gian */
 }

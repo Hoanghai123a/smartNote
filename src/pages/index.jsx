@@ -13,17 +13,7 @@ const Home = () => {
   }, [id_nguoidung]);
   return (
     <div className="homepage">
-      <div className="top-nav">
-        <Link to="/info">Info</Link>
-        <Link to="/info/hung">Hung</Link>
-        <Link to="/info/hai">Hải</Link>
-        <div className="a" onClick={handleClick}>
-          Hoàng
-        </div>
-      </div>
-      <div className="body">
-        <Outlet />
-      </div>
+      <div className="flex flex-col bg-[#999] fixed w-full h-full"></div>
     </div>
   );
 };
