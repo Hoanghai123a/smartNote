@@ -34,7 +34,7 @@ const Login_index = () => {
       <div className="flex flex-col items-center gap-1 fadeInTop">
         <div className="flex w-[90vw] relative justify-between mb-3 items-center p-3 shadow rounded-[10px] gap-1 text-[#0180f6] font-[500]">
           <CiStickyNote size={50} />
-          <RiGeminiFill className="absolute top-[11px] left-2" />
+          <RiGeminiFill className="absolute top-[10px] left-2 text-[#a6bcf8]" />
           <div className="flex flex-col items-end">
             <div className="flex text-[22px]">SmartNotes</div>
             <div className="flex">Sổ tay thông minh 4.0</div>
