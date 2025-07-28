@@ -1,130 +1,77 @@
 @import "tailwindcss";
+:root {
+  --primary-color: #0180f6;
+  --bg-color: #f0f2f5;
+  --text-color: #1d1d1f;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+}
+body,
+html {
+  height: 100%;
+  overflow: auto; /* hoặc unset */
+  overscroll-behavior: auto;
+  -webkit-overflow-scrolling: touch; /* cần cho iOS */
+}
 body {
+  font-family: var(--font-family);
   margin: 0;
-  background-color: #f0f2f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  box-sizing: border-box;
-}
-.homepage {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  flex-direction: column;
-  padding: 0px;
-  margin: 0px;
-  .top-nav {
-    height: 60px;
-    display: flex;
-    background-color: #0056b3;
-    a,
-    .a {
-      display: flex;
-      width: 60px;
-      height: 60px;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
-  }
-  .body {
-    display: flex;
-    flex: 1;
-    background-color: #d3d3d3;
-  }
-}
-/* LOGIN FORM STYLES */
-.login_form {
-  display: flex;
-  flex-direction: column;
-  /* align-items: center; */ /* Bỏ align-items: center ở đây để form_footer có thể căn chỉnh tự do */
-  padding: 25px 20px;
-  gap: 15px;
-  border-radius: 12px;
-  border: none;
-  background-color: #ffffff;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  font-size: 16px;
-  text-align: center;
-  box-sizing: border-box;
-  position: relative; /* Đặt position cho cha để footer có thể position: absolute */
-  padding-bottom: 70px; /* Thêm padding dưới để footer có không gian */
-}
-
-.form_title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.form_input {
-  width: 100%;
-  gap: 10px;
-  box-sizing: border-box;
-}
-
-input {
-  box-sizing: border-box;
-  border-radius: 8px;
-  padding: 10px 12px;
-  height: auto;
-  width: 100%;
-  border: 1px solid #ced4da;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  font-size: 15px;
-  outline: none;
-}
-
-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-}
-
-/* Styles for the new button */
-.form_submit {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 100%;
-  font-weight: bold;
-  margin-top: 5px;
-  font-size: 15px;
-  box-sizing: border-box;
-}
-
-.form_submit:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-}
-
-.form_footer {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
+  padding: 0;
   font-size: 14px;
-  color: #6c757d;
+  color: var(--text-color);
+  scroll-behavior: smooth;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
-
-.signup_link {
-  color: #007bff;
-  text-decoration: underline;
-  cursor: pointer;
-  font-weight: bold;
-  transition: color 0.3s ease;
+input {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-color);
+  box-sizing: border-box;
+  transition: all 0.3s;
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
 }
-
-.signup_link:hover {
-  color: #0056b3;
+#root {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* quan trọng cho iOS */
+}
+.fadeInTop {
+  animation: fadeInTop 0.4s ease-in-out;
+}
+.typewriter {
+  overflow: hidden;
+  animation: typing 1.3s steps(30, end), blink 0.75s step-end infinite;
+}
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+  20% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+@keyframes fadeInTop {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

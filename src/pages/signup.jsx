@@ -1,6 +1,6 @@
 import React from "react";
 
-const SignUp_index = () => {
+const Signup_index = () => {
   return (
     <div className="signup_form flexc">
       <div className="form_title">Đăng Ký Tài Khoản</div>
@@ -82,4 +82,4 @@ const SignUp_index = () => {
   );
 };
 
-export default SignUp_index;
+export default Signup_index;

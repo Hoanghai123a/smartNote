@@ -1,21 +1,39 @@
-import React, { useEffect } from "react";
-import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useUser } from "../stores/UserContext";
+import api from "../assets/Components/api";
+import { useLocation, useNavigate } from "react-router-dom";
+import { message } from "antd";
 
 const Home = () => {
-  const { id_nguoidung } = useParams();
+  const { user, setUser } = useUser();
+  const [checkauthfade, setCheckauthfade] = useState(false);
+  const [checkauth, setCheckauth] = useState(true);
   const navigate = useNavigate();
-  const handleClick = () => {
-    // xử lý api đăng nhập
-    navigate("/");
-  };
   useEffect(() => {
-    console.log(id_nguoidung);
-  }, [id_nguoidung]);
-  return (
-    <div className="homepage">
-      <div className="flex flex-col bg-[#999] fixed w-full h-full"></div>
-    </div>
-  );
+    const token = api.getCookie("token");
+    if (token) {
+      console.log("Có token:", token);
+      api
+        .get("/user/", token)
+        .then(async (res) => {
+          if (!res?.id) navigate("/login/");
+          setTimeout(() => {
+            setCheckauthfade(true);
+            setTimeout(() => {
+              setCheckauth(false);
+            }, 400);
+          }, 600);
+        })
+        .catch((error) => {
+          message.error("Lấy dữ liệu người dùng thất bại!");
+          console.log(error);
+          navigate("/login/");
+        });
+    } else {
+      console.log("Không tìm thấy token!");
+      navigate("/login");
+    }
+  }, []);
+  return <div className="home">Trang chủ</div>;
 };
-
 export default Home;
