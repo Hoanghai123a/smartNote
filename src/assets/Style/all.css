@@ -47,7 +47,13 @@ input {
 }
 .typewriter {
   overflow: hidden;
-  animation: typing 1.3s steps(30, end), blink 0.75s step-end infinite;
+  animation: typing 0.6s steps(30, end), blink 0.75s step-end infinite;
+}
+.typewriter-delayed {
+  overflow: hidden;
+  width: 0;
+  animation: typing 1.3s steps(30, end) 0.8s forwards,
+    blink 0.75s step-end infinite;
 }
 @keyframes typing {
   0% {

@@ -5,6 +5,7 @@ import { FaLock, FaUser } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import api from "../assets/Components/api";
 import { useUser } from "../stores/UserContext";
+import { RiGeminiFill } from "react-icons/ri";
 
 const Login_index = () => {
   const [inputdata, setInputdata] = useState({
@@ -31,16 +32,22 @@ const Login_index = () => {
   return (
     <div className="min-h-[100vh] bg-white overflow-y-auto">
       <div className="flex flex-col items-center gap-1 fadeInTop">
-        <div className="flex w-[90vw] justify-between mb-3 items-center p-3 shadow rounded-[10px] gap-1 text-[#0180f6] font-[500]">
+        <div className="flex w-[90vw] relative justify-between mb-3 items-center p-3 shadow rounded-[10px] gap-1 text-[#0180f6] font-[500]">
           <CiStickyNote size={50} />
+          <RiGeminiFill className="absolute top-[11px] left-2" />
           <div className="flex flex-col items-end">
             <div className="flex text-[22px]">SmartNotes</div>
             <div className="flex">Sổ tay thông minh 4.0</div>
           </div>
         </div>
-        <div className="flex font-[500] text-[28px] pb-1 mt-5">Hello!</div>
-        <div className="flex text-[16px] justify-center whitespace-nowrap  relative">
-          <div className="block w-full typewriter">
+        <div className="flex justify-center mt-5">
+          <RiGeminiFill size={25} />
+        </div>
+        <div className="flex font-[500] text-[28px] pb-1 mt-2 justify-center">
+          <div className="typewriter whitespace-nowrap">Hello!</div>
+        </div>
+        <div className="flex text-[16px] justify-center whitespace-nowrap relative">
+          <div className="block w-full typewriter-delayed">
             Chào mừng bạn quay trở lại!
           </div>
         </div>
@@ -91,10 +98,10 @@ const Login_index = () => {
           <Button type="primary" onClick={handleLogin} className="mt-2 !py-5">
             Đăng nhập
           </Button>
-          <div className="text-center mt-2 text-[#999]">
-            hoặc{" "}
+          <div className="flex flex-col gap-1 text-center mt-3 text-[#999]">
+            hoặc
             <Link to="/signup" className="text-[#0180f6]">
-              Đăng ký tài khoản
+              Tạo tài khoản
             </Link>
           </div>
         </div>
