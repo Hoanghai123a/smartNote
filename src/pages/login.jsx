@@ -9,14 +9,16 @@ import { RiGeminiFill } from "react-icons/ri";
 
 const Login_index = () => {
   const nav = useNavigate();
+  const { user, setUser } = useUser();
   const [inputdata, setInputdata] = useState({
     username: "",
     password: "",
   });
-  const { user, setUser } = useUser();
+
   const passwordRef = React.useRef(null);
   const [loading, setLoading] = React.useState(false);
-  const handleLogin = async () => {
+
+  const handleLogin = () => {
     setLoading(true);
     api
       .post(`/login/`, {
@@ -72,7 +74,7 @@ const Login_index = () => {
               }}
               value={inputdata.username}
               onChange={(e) => {
-                setInputdata({ ...inputdata, username: e.target.value });
+                setInputdata((old) => ({ ...old, username: e.target.value }));
               }}
             />
           </div>
@@ -91,7 +93,7 @@ const Login_index = () => {
               }}
               value={inputdata.password}
               onChange={(e) => {
-                setInputdata({ ...inputdata, password: e.target.value });
+                setInputdata((old) => ({ ...old, password: e.target.value }));
               }}
               className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
               placeholder="Tên đăng nhập"

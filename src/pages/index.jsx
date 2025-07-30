@@ -9,6 +9,7 @@ import { FaNoteSticky } from "react-icons/fa6";
 
 const Home = () => {
   const { user, setUser } = useUser();
+
   const [checkauthfade, setCheckauthfade] = useState(false);
   const [checkauth, setCheckauth] = useState(true);
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Home = () => {
       api
         .get("/user/", token)
         .then(async (res) => {
-          if (!res?.id) navigate("/login");
+          if (!res?.id && !res?.username) navigate("/login");
           setTimeout(() => {
             setCheckauthfade(true);
             setTimeout(() => {
