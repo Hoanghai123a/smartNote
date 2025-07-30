@@ -3,6 +3,9 @@ import { useUser } from "../stores/UserContext";
 import api from "../assets/Components/api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { message } from "antd";
+import { CiStickyNote } from "react-icons/ci";
+import { RiGeminiFill } from "react-icons/ri";
+import { FaNoteSticky } from "react-icons/fa6";
 
 const Home = () => {
   const { user, setUser } = useUser();
@@ -16,7 +19,7 @@ const Home = () => {
       api
         .get("/user/", token)
         .then(async (res) => {
-          if (!res?.id) navigate("/login/");
+          if (!res?.id) navigate("/login");
           setTimeout(() => {
             setCheckauthfade(true);
             setTimeout(() => {
@@ -27,13 +30,32 @@ const Home = () => {
         .catch((error) => {
           message.error("Lấy dữ liệu người dùng thất bại!");
           console.log(error);
-          navigate("/login/");
+          navigate("/login");
         });
     } else {
       console.log("Không tìm thấy token!");
       navigate("/login");
     }
   }, []);
-  return <div className="home">Trang chủ</div>;
+  return (
+    <div className="flex flex-col">
+      <div className="flex justify-between mb-3 items-center p-3 shadow rounded-[10px] gap-1 text-[#0180f6] font-[500]">
+        <div className="flex gap-1">
+          <FaNoteSticky size={24} /> SmartNotes
+        </div>
+        <div
+          className="flex items-center justify-center text-[14px] font-[500] text-[#0180f6] cursor-pointer"
+          onClick={() => {
+            api.removeCookie("token");
+            setUser(null);
+            navigate("/login");
+          }}
+        >
+          Đăng xuất
+        </div>
+      </div>
+      <div className="main-body p-5 text-center fadeInTop">Trang chủ</div>
+    </div>
+  );
 };
 export default Home;

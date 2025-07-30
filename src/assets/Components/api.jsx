@@ -220,8 +220,12 @@ function setCookie(name, value, seconds) {
   }
   document.cookie = `${name}=${value || ""}${expires}; path=/`;
 }
+function removeCookie(name) {
+  document.cookie = `${name}=; Max-Age=0; path=/`;
+}
 export default {
   setCookie,
+  removeCookie,
   getCookie,
   error,
   get: debounceGet,

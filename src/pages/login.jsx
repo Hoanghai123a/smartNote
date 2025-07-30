@@ -2,31 +2,37 @@ import { Button } from "antd";
 import React, { useState } from "react";
 import { CiStickyNote } from "react-icons/ci";
 import { FaLock, FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../assets/Components/api";
 import { useUser } from "../stores/UserContext";
 import { RiGeminiFill } from "react-icons/ri";
 
 const Login_index = () => {
+  const nav = useNavigate();
   const [inputdata, setInputdata] = useState({
     username: "",
     password: "",
   });
   const { user, setUser } = useUser();
   const passwordRef = React.useRef(null);
+  const [loading, setLoading] = React.useState(false);
   const handleLogin = async () => {
+    setLoading(true);
     api
       .post(`/login/`, {
         username: inputdata.username,
         password: inputdata.password,
       })
       .then((res) => {
-        api.setCookie("token", res.token, res.expires);
+        api.setCookie("token", res.access_token, res.expires_in);
         setUser(res);
-        window.location.href = "/";
+        nav("/");
       })
       .catch((e) => {
         api.error(e);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
   return (
@@ -95,7 +101,12 @@ const Login_index = () => {
             <input type="checkbox" className="mr-1 outline-[#999]" /> Nhớ mật
             khẩu
           </div>
-          <Button type="primary" onClick={handleLogin} className="mt-2 !py-5">
+          <Button
+            type="primary"
+            loading={loading}
+            onClick={handleLogin}
+            className="mt-2 !py-5"
+          >
             Đăng nhập
           </Button>
           <div className="flex flex-col gap-1 text-center mt-3 text-[#999]">
