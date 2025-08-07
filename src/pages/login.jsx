@@ -96,7 +96,7 @@ const Login_index = () => {
                 setInputdata((old) => ({ ...old, password: e.target.value }));
               }}
               className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
-              placeholder="Tên đăng nhập"
+              placeholder="Mật khẩu"
             />
           </div>
           <div className="flex items-center mt-2 gap-1 text-[#999] text-[13px]">
