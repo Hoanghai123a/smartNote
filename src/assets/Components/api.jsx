@@ -2,8 +2,8 @@ import { message } from "antd";
 import axios from "axios";
 
 const key = import.meta.env.VITE_KEY;
-const author = import.meta.env.VITE_AUTHOR;
-const version = import.meta.env.VITE_VERSION;
+// const author = import.meta.env.VITE_AUTHOR;
+// const version = import.meta.env.VITE_VERSION;
 const host = import.meta.env.VITE_HOST;
 const DEFAULT_DEBOUNCE_DELAY = 100;
 const debugMode = import.meta.env.VITE_DEBUGMODE === "development";
