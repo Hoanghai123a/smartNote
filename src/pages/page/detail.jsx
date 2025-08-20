@@ -2,12 +2,78 @@ import React, { useState } from "react";
 import { Button, Modal, Form, Input, DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import api from "../../assets/Components/api";
+import { LuClipboardList } from "react-icons/lu";
+import {
+  AiOutlinePlus,
+  AiOutlineUser,
+  AiOutlinePhone,
+  AiOutlineDollarCircle,
+  AiOutlineFileText,
+  AiOutlineCalendar,
+} from "react-icons/ai";
 
 const DetailList = () => {
   const [data, setData] = useState([
     {
+      id: 1,
       stt: 1,
+      user: "test1",
       name: "Nguyễn Văn A",
+      phone: "0123456789",
+      date: "2025-08-19",
+      classify: "None",
+      money: "5,000,000",
+      note: "Ghi chú",
+    },
+    {
+      id: 2,
+      stt: 2,
+      user: "test2",
+      name: "Nguyễn Văn B",
+      phone: "0123456789",
+      date: "2025-08-19",
+      classify: "None",
+      money: "5,000,000",
+      note: "Ghi chú",
+    },
+    {
+      id: 3,
+      stt: 2,
+      user: "test2",
+      name: "Nguyễn Văn B",
+      phone: "0123456789",
+      date: "2025-08-19",
+      classify: "None",
+      money: "5,000,000",
+      note: "Ghi chú",
+    },
+    {
+      id: 4,
+      stt: 2,
+      user: "test2",
+      name: "Nguyễn Văn B",
+      phone: "0123456789",
+      date: "2025-08-19",
+      classify: "None",
+      money: "5,000,000",
+      note: "Ghi chú",
+    },
+    {
+      id: 5,
+      stt: 2,
+      user: "test2",
+      name: "Nguyễn Văn B",
+      phone: "0123456789",
+      date: "2025-08-19",
+      classify: "None",
+      money: "5,000,000",
+      note: "Ghi chú",
+    },
+    {
+      id: 6,
+      stt: 2,
+      user: "test2",
+      name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
       classify: "None",
@@ -52,63 +118,95 @@ const DetailList = () => {
       console.log("Validation Failed:", err);
     }
   };
-
+  const [usedate, setusedate] = useState(dayjs().format("YYYY-MM-DD"));
   return (
-    <div className="p-4">
-      <div className="topitem flex gap-2 mb-4">
-        <input
-          placeholder="Lọc theo ngày"
-          className="border rounded-md px-4 py-2 bg-white shadow-sm hover:bg-gray-100"
-        />
-        <input
-          placeholder="Lọc theo tên"
-          className="border rounded-md px-4 py-2 bg-white shadow-sm hover:bg-gray-100"
-        />
-        <Button onClick={showModal}>+</Button>
-      </div>
-
-      <div className="flex flex-col gap-4 md:flex-row">
-        <section className="w-full md:flex-1">
-          <div className="border rounded-md p-2 text-center text-lg font-medium mb-2">
-            Danh sách công nợ
+    <div className="flex flex-col gap-4 md:flex-row">
+      <div className="p-2 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between mb-2 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] rounded">
+          <div className="p-2 text-left text-2xl font-medium flex items-center gap-2">
+            <LuClipboardList className="" />
+            Detail List
           </div>
+          <Button
+            onClick={showModal}
+            type="primary"
+            size="middle"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 shadow-md"
+          >
+            <AiOutlinePlus size={20} className="text-white" />
+          </Button>
+        </div>
 
-          <div className="border rounded-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto border-collapse text-sm">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border px-2 py-1">STT</th>
-                    <th className="border px-2 py-1">Ngày</th>
-                    <th className="border px-2 py-1">Họ Tên</th>
-                    <th className="border px-2 py-1">SĐT</th>
-                    <th className="border px-2 py-1">Loại hình</th>
-                    <th className="border px-2 py-1">Số tiền</th>
-                    <th className="border px-2 py-1">Ghi chú</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((row) => (
-                    <tr key={row.stt}>
-                      <td className="border px-2 py-1 text-center">
-                        {row.stt}
-                      </td>
-                      <td className="border px-2 py-1">{row.date}</td>
-                      <td className="border px-2 py-1">{row.name}</td>
-                      <td className="border px-2 py-1">{row.phone}</td>
-                      <td className="border px-2 py-1">{row.classify}</td>
-                      <td className="border px-2 py-1">{row.money}</td>
-                      <td className="border px-2 py-1">{row.note}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="topitem flex mb-4 p-2">
+          <Select
+            className="w-[200px] !h-[40px]"
+            showSearch
+            placeholder="Lọc tên"
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+            options={data.map((key) => ({ value: key.stt, label: key.name }))}
+          />
+          <input
+            type="date"
+            value={usedate}
+            onChange={(e) => setusedate(e.target.value)}
+            className="border rounded-md ml-[15px] px-4 py-2 w-[160px] bg-white shadow-sm !text-[#b5b5b5]"
+          />
+        </div>
+      </div>
+      <section className="md:flex-1 overflow-y-auto max-h-[70vh] mx-[10px]">
+        <div className="space-y-3">
+          {data.map((row) => (
+            <div
+              key={row.id}
+              className="border rounded-lg shadow-sm p-3 bg-white"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold text-gray-600">
+                  #{row.stt}
+                </span>
+                <span className="text-xs text-gray-400">{row.date}</span>
+              </div>
+
+              <div className="space-y-1 text-sm">
+                <div className="flex mt-0.5">
+                  <AiOutlineUser className="text-blue-500 mr-[4px]" />
+                  <span className="font-medium text-gray-700 flex items-center gap-2">
+                    Họ tên:{" "}
+                  </span>
+                  <span>{row.name}</span>
+                </div>
+                <div className="flex">
+                  <AiOutlinePhone className="text-green-500 mr-[4px]" />
+                  <span className="font-medium text-gray-700">SĐT: </span>
+                  <span>{row.phone}</span>
+                </div>
+                <div className="flex mt-0.5">
+                  <AiOutlineFileText className="text-purple-500 mr-[4px]" />
+                  <span className="font-medium text-gray-700">Loại hình: </span>
+                  <span>{row.classify}</span>
+                </div>
+                <div className="flex mt-0.5">
+                  <AiOutlineDollarCircle className="text-yellow-500 mr-[4px]" />
+                  <span className="font-medium text-gray-700">Số tiền: </span>
+                  <span className="text-green-600 font-semibold">
+                    {row.money}
+                  </span>
+                </div>
+                {row.note && (
+                  <div className="flex mt-0.5">
+                    <AiOutlineFileText className="text-gray-500 mr-[4px]" />
+                    <span className="font-medium text-gray-700">Ghi chú: </span>
+                    <span>{row.note}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+          ))}
+        </div>
+      </section>
 
-      {/* Modal thêm mới */}
       <Modal
         title="Thêm công nợ mới"
         open={isModalOpen}
@@ -117,7 +215,7 @@ const DetailList = () => {
         okText="Lưu"
         cancelText="Hủy"
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="horizontal">
           <Form.Item
             label="Họ tên"
             name="name"
