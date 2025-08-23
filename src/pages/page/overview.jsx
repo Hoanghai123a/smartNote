@@ -1,110 +1,112 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import Detailcongno from "../../assets/Components/detailcongno";
 
 const Overview = () => {
   const [dataThu, setdataThu] = useState([
-    { stt: 1, name: "Nguyễn Văn A", phone: "0123456789", money: "5,000,000" },
+    {
+      id: 1,
+      stt: 1,
+      name: "Nguyễn Văn A",
+      phone: "0123456789",
+      money: "5,000,000",
+      date: "2025-05-25",
+    },
+    {
+      id: 2,
+      stt: 1,
+      name: "Nguyễn Văn B",
+      phone: "0123456789",
+      money: "5,000,000",
+      date: "2025-05-15",
+    },
+    {
+      id: 3,
+      stt: 1,
+      name: "Nguyễn Văn C",
+      phone: "0123456789",
+      money: "5,000,000",
+      date: "2025-07-23",
+    },
   ]);
   const [dataTra, setdataTra] = useState([
-    { stt: 1, name: "Trần Thị B", phone: "0987654321", money: "3,000,000" },
+    {
+      id: 1,
+      stt: 1,
+      name: "Trần Thị B",
+      phone: "0987654321",
+      money: "3,000,000",
+      date: "2025-07-23",
+    },
   ]);
 
   return (
     <div className="p-4">
-      {/* Nút lọc */}
-      <div className="mb-4">
-        <input
-          placeholder="Lọc theo ngày"
-          className="border rounded-md px-4 py-2 bg-white shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+      <div className="rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+        <div className="text-left">
+          <div className="text-[24px]">Công nợ</div>
+          <div>Tổng công nợ từ trước tới nay</div>
+        </div>
+        <div className="text-[30px] text-right">
+          {(200000).toLocaleString()}đ
+        </div>
       </div>
-
-      {/* Công nợ */}
-      <div className="border rounded-md p-3 mb-4 text-center font-medium shadow-sm bg-gray-50">
-        Công nợ = Khoản cần thu - Khoản cần trả
+      <div className="flex gap-2">
+        <div className="flex flex-col flex-1 rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+          <div className="text-left">
+            <div className="text-[20px]">Cần thu</div>
+          </div>
+          <div className="text-[24px] text-right">
+            {(200000).toLocaleString()}đ
+          </div>
+        </div>
+        <div className="flex flex-col flex-1 rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+          <div className="text-left">
+            <div className="text-[20px]">Cần trả</div>
+          </div>
+          <div className="text-[24px] text-right">
+            {(200000).toLocaleString()}đ
+          </div>
+        </div>
       </div>
-
       <div className="flex flex-col gap-4 md:flex-row">
-        {/* Top cần thu */}
-        <section className="w-full md:flex-1">
-          <div className="border rounded-md p-2 text-center text-lg font-medium mb-2 bg-blue-50 shadow-sm">
-            Top cần thu
-          </div>
-
-          <div className="border rounded-md overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full table-fixed border-collapse text-sm">
-                <colgroup>
-                  <col className="w-12" />
-                  <col />
-                  <col className="w-32" />
-                  <col />
-                </colgroup>
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="border px-2 py-1">STT</th>
-                    <th className="border px-2 py-1 text-left">Họ Tên</th>
-                    <th className="border px-2 py-1">SĐT</th>
-                    <th className="border px-2 py-1 text-right">Số tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataThu.map((row) => (
-                    <tr key={`thu-${row.stt}`} className="hover:bg-gray-50">
-                      <td className="border px-2 py-1 text-center">
-                        {row.stt}
-                      </td>
-                      <td className="border px-2 py-1">{row.name}</td>
-                      <td className="border px-2 py-1">{row.phone}</td>
-                      <td className="border px-2 py-1 text-right">
-                        {row.money}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        {/* Top cần trả */}
-        <section className="w-full md:flex-1">
-          <div className="border rounded-md p-2 text-center text-lg font-medium mb-2 bg-red-50 shadow-sm">
-            Top cần trả
-          </div>
-
-          <div className="border rounded-md overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full table-fixed border-collapse text-sm">
-                <colgroup>
-                  <col className="w-12" />
-                  <col />
-                  <col className="w-32" />
-                  <col />
-                </colgroup>
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="border px-2 py-1">STT</th>
-                    <th className="border px-2 py-1 text-left">Họ Tên</th>
-                    <th className="border px-2 py-1">SĐT</th>
-                    <th className="border px-2 py-1 text-right">Số tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataTra.map((row) => (
-                    <tr key={`tra-${row.id}`} className="hover:bg-gray-50">
-                      <td className="border px-2 py-1 text-center">{row.id}</td>
-                      <td className="border px-2 py-1">{row.name}</td>
-                      <td className="border px-2 py-1">{row.phone}</td>
-                      <td className="border px-2 py-1 text-right">
-                        {row.money}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+        <div className="text-[20px] text-left">Top 5 nợ cần thu</div>
+        <div className="flex flex-col gap-2">
+          {dataThu.map((row) => (
+            <Detailcongno data={row} key={row.id}>
+              <div className="flex flex-1 rounded-lg p-3 text-center shadow-lg bg-gray-50">
+                <div className="flex flex-1/3">{row.name}</div>
+                <div className="flex flex-1/3">
+                  <Link
+                    to={"tel:" + row.phone}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {row.phone}
+                  </Link>
+                </div>
+                <div className="flex flex-1/3">
+                  {row.money.toLocaleString()}đ
+                </div>
+              </div>
+            </Detailcongno>
+          ))}
+        </div>
+        <div className="text-[20px] text-left">Top 5 nợ cần trả</div>
+        <div className="flex flex-col gap-2">
+          {dataTra.map((row) => (
+            <Detailcongno data={row} key={row.id}>
+              <div className="flex flex-1 rounded-lg p-3 text-center shadow-lg bg-gray-50">
+                <div className="flex flex-1/3">{row.name}</div>
+                <div className="flex flex-1/3">
+                  <Link to={"tel:" + row.phone}>{row.phone}</Link>
+                </div>
+                <div className="flex flex-1/3">
+                  {row.money.toLocaleString()}đ
+                </div>
+              </div>
+            </Detailcongno>
+          ))}
+        </div>
       </div>
     </div>
   );
