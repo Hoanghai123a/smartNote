@@ -133,7 +133,7 @@ const DetailList = () => {
       <section className="md:flex-1 overflow-y-auto h-full mx-[10px]">
         <div className="space-y-3">
           {data.map((row, index) => (
-            <Detailcongno
+            <Detailcard
               data={{ ...row, stt: index + 1 }}
               key={row.id}
               className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
