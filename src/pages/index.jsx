@@ -36,16 +36,6 @@ const Home = () => {
             <IoList className="w-6 h-6" />
           </NavLink>
           <NavLink
-            to="/notes"
-            className={({ isActive }) =>
-              `menuitem px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-              }`
-            }
-          >
-            <FaRegNoteSticky className="w-6 h-6" />
-          </NavLink>
-          <NavLink
             to="/info"
             className={({ isActive }) =>
               `px-4 py-2 rounded-md ${

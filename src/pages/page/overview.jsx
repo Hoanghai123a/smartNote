@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Detailcongno from "../../assets/Components/detailcongno";
+import { FaHandHoldingUsd, FaMoneyBillWave } from "react-icons/fa";
 
 const Overview = () => {
   const [dataThu, setdataThu] = useState([
@@ -42,47 +43,57 @@ const Overview = () => {
 
   return (
     <div className="p-4">
-      <div className="rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
-        <div className="text-left">
-          <div className="text-[24px]">Công nợ</div>
-          <div>Tổng công nợ từ trước tới nay</div>
-        </div>
-        <div className="text-[30px] text-right">
-          {(200000).toLocaleString()}đ
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <div className="flex flex-col flex-1 rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+      <div className=" rounded-b-3xl">
+        <div className="rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
           <div className="text-left">
-            <div className="text-[20px]">Cần thu</div>
+            <div className="text-[24px]">Công nợ</div>
+            <div style={{ fontStyle: "italic" }} className="mt-[3px]">
+              Tổng công nợ từ trước tới nay
+            </div>
           </div>
-          <div className="text-[24px] text-right">
+          <div className="text-[30px] text-right">
             {(200000).toLocaleString()}đ
           </div>
         </div>
-        <div className="flex flex-col flex-1 rounded-lg p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
-          <div className="text-left">
-            <div className="text-[20px]">Cần trả</div>
+        <div className="flex gap-2">
+          <div className="flex flex-col flex-1 rounded-3xl p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+            <div className="text-[20px] flex">
+              <div>
+                <FaHandHoldingUsd />
+              </div>
+              <div className="ml-[5px]">Thu</div>
+            </div>
+            <div className="text-[24px] text-right">
+              {(200000).toLocaleString()}đ
+            </div>
           </div>
-          <div className="text-[24px] text-right">
-            {(200000).toLocaleString()}đ
+          <div className="flex flex-col flex-1 rounded-3xl p-3 mb-4 text-center font-medium shadow-lg bg-gray-50">
+            <div className="text-[20px] flex">
+              <div>
+                <FaMoneyBillWave />
+              </div>
+              <div className="ml-[5px]">Chi</div>
+            </div>
+            <div className="text-[24px] text-right">
+              {(200000).toLocaleString()}đ
+            </div>
           </div>
         </div>
       </div>
       <div className="flex flex-col gap-4 md:flex-row">
-        <div className="text-[20px] text-left">Top 5 nợ cần thu</div>
+        <div
+          className="text-[20px] text-left"
+          style={{ textDecoration: "underline" }}
+        >
+          Top 5 nợ cần thu
+        </div>
         <div className="flex flex-col gap-2">
           {dataThu.map((row) => (
             <Detailcongno data={row} key={row.id}>
               <div className="flex flex-1 rounded-lg p-3 text-center shadow-lg bg-gray-50">
                 <div className="flex flex-1/3">{row.name}</div>
                 <div className="flex flex-1/3">
-                  <Link
-                    to={"tel:" + row.phone}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {row.phone}
-                  </Link>
+                  <Link to={"tel:" + row.phone}>{row.phone}</Link>
                 </div>
                 <div className="flex flex-1/3">
                   {row.money.toLocaleString()}đ
@@ -91,7 +102,12 @@ const Overview = () => {
             </Detailcongno>
           ))}
         </div>
-        <div className="text-[20px] text-left">Top 5 nợ cần trả</div>
+        <div
+          className="text-[20px] text-left"
+          style={{ textDecoration: "underline" }}
+        >
+          Top 5 nợ cần trả
+        </div>
         <div className="flex flex-col gap-2">
           {dataTra.map((row) => (
             <Detailcongno data={row} key={row.id}>

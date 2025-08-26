@@ -1,26 +1,48 @@
-import { Modal } from "antd";
+import { Button, Modal } from "antd";
 import React, { useState } from "react";
 import Detailcard from "./detailcard";
+import { FaDollarSign } from "react-icons/fa";
+import Payment from "./payment";
 
-const Detailcongno = ({ children, data }) => {
+const Detailcongno = ({ children, data, className }) => {
   console.log(data);
-  const [isModalOpen, setisModalOpen] = useState(false);
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const handleClick = (e) => {
+    if (
+      e.target.closest("a[href^='tel:']") ||
+      e.target.closest("[data-no-modal]")
+    ) {
+      return;
+    }
+    setIsDetailModalOpen(true);
+  };
   return (
     <>
-      <div onClick={() => setisModalOpen(true)}>{children}</div>
+      <div onClick={handleClick}>{children}</div>
+
       <Modal
-        className=""
-        title="Lịch sử công nợ"
-        open={isModalOpen}
+        className={className}
+        title={
+          <div className="flex items-center gap-2">
+            <span>Lịch sử công nợ (hiện tổng tiền)</span>
+            <FaDollarSign className="text-green-600" />
+          </div>
+        }
+        open={isDetailModalOpen}
         styles={{
           body: {
-            maxHeight: "60vh",
+            maxHeight: "70vh",
             overflowY: "auto",
-            padding: "16px",
+            paddingTop: "16px",
           },
         }}
-        footer={[]}
-        onCancel={() => setisModalOpen(false)}
+        footer={
+          <Payment id={"1"}>
+            <Button type="primary">Thanh toán</Button>
+          </Payment>
+        }
+        onCancel={() => setIsDetailModalOpen(false)}
       >
         <Detailcard data={data} />
       </Modal>

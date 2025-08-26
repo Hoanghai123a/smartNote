@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Button, Modal, Form, Input, DatePicker, Select } from "antd";
 import dayjs from "dayjs";
-import api from "../../assets/Components/api";
 import { LuClipboardList } from "react-icons/lu";
 import { AiOutlinePlus } from "react-icons/ai";
 import Detailcard from "../../assets/Components/detailcard";
 import Add_note from "../../assets/Components/add_note";
+import Detailcongno from "../../assets/Components/detailcongno";
+import { Link } from "react-router-dom";
 
 const DetailList = () => {
   const [data, setData] = useState([
@@ -71,28 +72,6 @@ const DetailList = () => {
     },
   ]);
 
-  const addData = async () => {
-    try {
-      const values = await form.validateFields();
-      const newItem = {
-        stt: data.length + 1,
-        name: values.name,
-        phone: values.phone,
-        date: values.date.format("YYYY-MM-DD"),
-        classify: values.classify,
-        money: values.money,
-        note: values.note,
-        type: "noteplus",
-        status: "ON",
-      };
-
-      const create = await api.post("/api/notes/", values);
-      console.log(create);
-      setData([...data, newItem]);
-    } catch (err) {
-      console.log("Validation Failed:", err);
-    }
-  };
   const [usedate, setusedate] = useState(dayjs().format("YYYY-MM-DD"));
   return (
     <div className="flex flex-col gap-4 md:flex-row h-full">
@@ -103,7 +82,7 @@ const DetailList = () => {
             Detail List
           </div>
           <Add_note
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg mr-[8px]"
             callback={(newNote) =>
               setData([...data, { ...newNote, stt: data.length + 1 }])
             }
@@ -133,11 +112,12 @@ const DetailList = () => {
       <section className="md:flex-1 overflow-y-auto h-full mx-[10px]">
         <div className="space-y-3">
           {data.map((row, index) => (
-            <Detailcard
-              data={{ ...row, stt: index + 1 }}
-              key={row.id}
-              className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
-            />
+            <Detailcongno key={row.id} data={{ ...row, stt: index + 1 }}>
+              <Detailcard
+                data={{ ...row, stt: index + 1 }}
+                className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
+              />
+            </Detailcongno>
           ))}
         </div>
       </section>
