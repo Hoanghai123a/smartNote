@@ -1,5 +1,5 @@
 import { Button, Modal } from "antd";
-import React, { useState } from "react";
+import React, { cloneElement, useState } from "react";
 import Detailcard from "./detailcard";
 import { FaDollarSign } from "react-icons/fa";
 
@@ -27,9 +27,7 @@ const Payment = ({ children, id }) => {
   };
   return (
     <>
-      <div onClick={handlePayment} data-no-modal>
-        {children}
-      </div>
+      {cloneElement(children, { onClick: handlePayment })}
       <Modal
         title="Thanh toán công nợ"
         open={isPaymentModalOpen}

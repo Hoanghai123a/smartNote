@@ -7,6 +7,7 @@ import { HiOutlineKey } from "react-icons/hi";
 import { VscSymbolClass } from "react-icons/vsc";
 import { FaCamera } from "react-icons/fa";
 import ChangePass from "../../assets/Components/change_pass";
+import CategoryManager from "../../assets/Components/useclass";
 
 const Info = () => {
   const { id_nguoidung } = useParams();
@@ -76,10 +77,12 @@ const Info = () => {
             <HiOutlineKey />
           </Button>
         </ChangePass>
-        <Button type="default" block>
-          Danh sách phân loại
-          <VscSymbolClass className="text-purple-500 mr-[4px]" />
-        </Button>
+        <CategoryManager>
+          <Button type="default" block>
+            Danh sách phân loại
+            <VscSymbolClass className="text-purple-500 mr-[4px]" />
+          </Button>
+        </CategoryManager>
       </div>
     </div>
   );

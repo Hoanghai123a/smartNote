@@ -58,6 +58,9 @@ input {
   animation: typing 1.3s steps(30, end) 0.9s forwards,
     blink 0.75s step-end infinite;
 }
+.ant-form-item {
+  margin-bottom: 15px;
+}
 @keyframes typing {
   0% {
     width: 0;

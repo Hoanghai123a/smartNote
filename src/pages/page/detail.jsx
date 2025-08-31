@@ -5,8 +5,7 @@ import { LuClipboardList } from "react-icons/lu";
 import { AiOutlinePlus } from "react-icons/ai";
 import Detailcard from "../../assets/Components/detailcard";
 import Add_note from "../../assets/Components/add_note";
-import Detailcongno from "../../assets/Components/detailcongno";
-import { Link } from "react-router-dom";
+import Groupcard from "../../assets/Components/group_card";
 
 const DetailList = () => {
   const [data, setData] = useState([
@@ -16,9 +15,9 @@ const DetailList = () => {
       name: "Nguyễn Văn A",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
+      class: "",
       money: "5,000,000",
-      note: "Ghi chú Bạn đang map data để truyền vào component Detailcard, và bạn muốn có thêm STT",
+      note: "Bạn đang map data để truyền vào component Detailcard, và bạn muốn có thêm STT",
     },
     {
       id: 2,
@@ -26,9 +25,9 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
+      class: "None",
       money: "5,000,000",
-      note: "Ghi chú",
+      note: null,
     },
     {
       id: 3,
@@ -36,7 +35,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
+      class: "None",
       money: "5,000,000",
       note: "Ghi chú",
     },
@@ -46,8 +45,8 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
-      money: "5,000,000",
+      class: "None",
+      money: "2,000,000",
       note: "Ghi chú",
     },
     {
@@ -56,9 +55,9 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
-      money: "5,000,000",
-      note: "Ghi chú",
+      class: "None",
+      money: "3,000,000",
+      note: "abc",
     },
     {
       id: 6,
@@ -66,9 +65,9 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      classify: "None",
+      class: "None",
       money: "5,000,000",
-      note: "Ghi chú",
+      note: "",
     },
   ]);
 
@@ -96,7 +95,7 @@ const DetailList = () => {
             className="!h-[40px] flex-2/3"
             showSearch
             placeholder="Lọc tên"
-            filterOption={(input, option) =>
+            classOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
             options={data.map((key) => ({ value: key.stt, label: key.name }))}
@@ -110,14 +109,14 @@ const DetailList = () => {
         </div>
       </div>
       <section className="md:flex-1 overflow-y-auto h-full mx-[10px]">
-        <div className="space-y-3">
+        <div className="space-y-3 pb-3">
           {data.map((row, index) => (
-            <Detailcongno key={row.id} data={{ ...row, stt: index + 1 }}>
+            <Groupcard key={row.id} data={{ ...row, stt: index + 1 }}>
               <Detailcard
                 data={{ ...row, stt: index + 1 }}
                 className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
               />
-            </Detailcongno>
+            </Groupcard>
           ))}
         </div>
       </section>

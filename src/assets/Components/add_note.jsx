@@ -80,7 +80,7 @@ const Add_note = ({ children, className, callback }) => {
 
           <Form.Item
             label="Loại hình"
-            name="classify"
+            name="class"
             rules={[{ required: true, message: "Vui lòng chọn loại hình" }]}
           >
             <Select
