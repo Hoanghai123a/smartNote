@@ -1,11 +1,41 @@
-import { Outlet, NavLink } from "react-router-dom";
-import React from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
 import { HiHome } from "react-icons/hi";
 import "antd/dist/reset.css";
 import { FaRegNoteSticky } from "react-icons/fa6";
 import { IoInformationCircle, IoList } from "react-icons/io5";
+import api from "../assets/Components/api";
+import { useUser } from "../stores/userContext";
 
 const Home = () => {
+  const nav = useNavigate();
+  const { user, setUser } = useUser();
+  // Hàm lấy cookie theo tên
+  const getCookie = (token) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${token}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
+  // Hàm check token
+  const checkApi = () => {
+    const token = getCookie("token");
+    if (!token) {
+      console.warn("Không tìm thấy token");
+      nav(`/login`);
+      return null;
+    }
+    api.get(`/user`, token).then((respon) => {
+      console.log(respon);
+      respon.token = token;
+      setUser(respon);
+    });
+    console.log(token);
+  };
+  useEffect(() => {
+    checkApi();
+  }, []);
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-1 bg-gray-100 overflow-hidden">

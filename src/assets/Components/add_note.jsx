@@ -8,24 +8,18 @@ import {
   message,
   DatePicker,
   Select,
-  Switch,
   Checkbox,
 } from "antd";
 import dayjs from "dayjs";
 import api from "./api";
+import { useUser } from "../../stores/userContext";
 
-const AddNote = ({
-  children,
-  className,
-  callback, // (payload) => void
-  users = [], // [{ id, name, phone }]
-  onUsersUpdate, // (nextUsers) => void
-}) => {
+const AddNote = ({ children, className, callback, users = [] }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandCalc, setExpandCalc] = useState(false);
   const [form] = Form.useForm();
+  const { user, setUser } = useUser();
 
-  // helper: build & merge extra note (qty/price)
   const buildExtraNote = (q, p, enabled) => {
     if (!enabled) return "";
     const qty = Number(q || 0);
@@ -51,7 +45,7 @@ const AddNote = ({
     setExpandCalc(false);
     form.setFieldsValue({
       date: dayjs(),
-      category: "None",
+      category: "in",
       isNewUser: false,
       money: 0,
       quantity: undefined,
@@ -90,53 +84,45 @@ const AddNote = ({
       const isNew = !!values.isNewUser;
 
       // chuẩn hoá name/phone
-      let nameToUse = values.name;
-      let phoneToUse = values.phone;
+      const newName = (values.newName || "").trim();
+      const newPhone = (values.newPhone || "").trim();
 
       if (isNew) {
         const newName = (values.newName || "").trim();
         const newPhone = (values.newPhone || "").trim();
-        if (!newName || !newPhone) {
-          message.warning("Vui lòng nhập Họ tên và SĐT cho người mới.");
-          return;
-        }
-        const nextId = users?.length
-          ? Math.max(...users.map((u) => Number(u.id) || 0)) + 1
-          : 1;
-        const newUser = { id: nextId, name: newName, phone: newPhone };
-        onUsersUpdate?.([...(users || []), newUser]);
-        nameToUse = newName;
-        phoneToUse = newPhone;
-      } else {
-        const found = (users || []).find(
-          (u) => String(u.id) === String(values.userId)
-        );
-        nameToUse = found?.name || nameToUse;
-        phoneToUse = found?.phone || phoneToUse;
+        //thêm người mới
+        const newClient = { name: newName, sdt: newPhone };
+        api.post(`/client/`, newClient);
       }
 
-      // Chốt note (an toàn lần cuối)
       const qty = Number(values.quantity || 0);
       const price = Number(values.unitPrice || 0);
       const extraNote = buildExtraNote(qty, price, expandCalc);
       const noteFinal = mergeNote(values.note, extraNote);
 
       const payload = {
-        name: nameToUse,
-        phone: phoneToUse,
-        date: values.date ? dayjs(values.date).format("YYYY-MM-DD") : undefined,
-        category: values.category, // None / Thu / Chi
-        money: values.money ?? 0,
-        note: noteFinal,
-        quantity: expandCalc ? qty : undefined,
-        unitPrice: expandCalc ? price : undefined,
+        tenghichu: "test",
+        khachhang: newName,
+        sdt: newPhone,
+        thoigian: values.date ? dayjs(values.date) : undefined,
+        phanloai: values.category, // in - out
+        loai: values.category,
+        sotien: values.money ?? 0,
+        noidung: noteFinal,
       };
-
-      await api.post("/api/notes/", payload);
-
-      message.success("Thêm ghi chú thành công!");
-      callback?.(payload);
-      handleCancel();
+      console.log(payload);
+      api
+        .post("/notes/", payload, user.token)
+        .then((respon) => {
+          console.log(respon);
+          message.success("Thêm ghi chú thành công!");
+          callback?.(payload);
+          handleCancel();
+        })
+        .catch((err) => {
+          console.log(err);
+          message.error("Không thể thêm ghi chú.");
+        });
     } catch (err) {
       console.error("Lỗi thêm ghi chú:", err);
       message.error("Không thể thêm ghi chú.");
@@ -160,7 +146,6 @@ const AddNote = ({
         onCancel={handleCancel}
         okText="Lưu"
         cancelText="Hủy"
-        destroyOnClose
       >
         <Form
           form={form}
@@ -187,16 +172,12 @@ const AddNote = ({
                 <Form.Item
                   label="Họ tên (mới)"
                   name="newName"
-                  rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+                  rules={[{ required: true, message: "Vui lòng nhập SĐT" }]}
                 >
                   <Input />
                 </Form.Item>
               ) : (
-                <Form.Item
-                  label="Họ tên"
-                  name="userId"
-                  rules={[{ required: true, message: "Vui lòng chọn họ tên" }]}
-                >
+                <Form.Item label="Họ tên" name="userId">
                   <Select
                     showSearch
                     placeholder="Chọn họ tên"
@@ -212,9 +193,7 @@ const AddNote = ({
           {/* SĐT */}
           <Form.Item
             noStyle
-            shouldUpdate={(p, c) =>
-              p.isNewUser !== c.isNewUser || p.userId !== c.userId
-            }
+            shouldUpdate={(p, c) => p.isNewUser !== c.isNewUser}
           >
             {({ getFieldValue }) => {
               const isNew = getFieldValue("isNewUser");
@@ -222,9 +201,11 @@ const AddNote = ({
                 <Form.Item
                   label={isNew ? "SĐT (mới)" : "SĐT"}
                   name={isNew ? "newPhone" : "phone"}
-                  rules={[
-                    { required: true, message: "Vui lòng nhập số điện thoại" },
-                  ]}
+                  rules={
+                    isNew
+                      ? [{ required: true, message: "Vui lòng nhập SĐT" }]
+                      : []
+                  }
                 >
                   <Input disabled={!isNew} />
                 </Form.Item>
@@ -237,7 +218,7 @@ const AddNote = ({
             name="date"
             rules={[{ required: true, message: "Vui lòng chọn ngày" }]}
           >
-            <DatePicker format="YYYY-MM-DD" className="w-full" />
+            <DatePicker format="YYYY-MM-DD   HH:mm" className="w-full" />
           </Form.Item>
 
           <Form.Item
@@ -247,9 +228,8 @@ const AddNote = ({
           >
             <Select
               options={[
-                { label: "None", value: "None" },
-                { label: "Thu", value: "Thu" },
-                { label: "Chi", value: "Chi" },
+                { label: "Thu", value: "in" },
+                { label: "Chi", value: "out" },
               ]}
             />
           </Form.Item>
@@ -304,6 +284,9 @@ const AddNote = ({
                         className="w-full"
                         min={0}
                         placeholder="Số lượng"
+                        formatter={(v) =>
+                          `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
                       />
                     </Form.Item>
                   </div>
@@ -332,18 +315,20 @@ const AddNote = ({
             </>
           )}
 
-          <Form.Item
-            label="Số tiền"
-            name="money"
-            rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
-          >
-            <InputNumber
-              className="!w-full"
-              min={0}
-              formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-              parser={(v) => v?.replace(/,/g, "")}
-            />
-          </Form.Item>
+          <div className="flex">
+            <Form.Item
+              label="Số tiền"
+              name="money"
+              rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
+            >
+              <InputNumber
+                style={{ width: "80%" }}
+                min={0}
+                formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                parser={(v) => v?.replace(/,/g, "")}
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item label="Ghi chú" name="note">
             <Input.TextArea rows={3} />

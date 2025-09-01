@@ -4,6 +4,7 @@ import FieldMoney from "./fields/money";
 import Fieldclass from "./fields/class";
 import { FaRegEdit } from "react-icons/fa";
 import FieldNote from "./fields/note";
+import EditCardValue from "./edit_card";
 
 const Detailcard = ({ className, data }) => {
   return (
@@ -15,7 +16,9 @@ const Detailcard = ({ className, data }) => {
           </span>
           <div className="flex gap-2">
             <span className="text-xs text-gray-400">{data.date}</span>
-            <FaRegEdit className="text-gray-400 " />
+            <EditCardValue data={data}>
+              <FaRegEdit className="text-gray-400 " />
+            </EditCardValue>
           </div>
         </div>
 

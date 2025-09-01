@@ -20,6 +20,16 @@ const Groupcard = ({ children, data, className }) => {
     ) {
       return;
     }
+    if (
+      e.target.closest(".ant-modal") ||
+      e.target.closest(".ant-modal-root") ||
+      e.target.closest(".ant-modal-mask") ||
+      e.target.closest(".ant-dropdown") ||
+      e.target.closest(".ant-picker-dropdown") ||
+      e.target.closest(".ant-select-dropdown")
+    ) {
+      return;
+    }
     setIsDetailModalOpen(true);
   };
   return (

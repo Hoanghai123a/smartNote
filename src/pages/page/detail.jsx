@@ -15,7 +15,7 @@ const DetailList = () => {
       name: "Nguyễn Văn A",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "",
+      class: "Thu",
       money: "5,000,000",
       note: "Bạn đang map data để truyền vào component Detailcard, và bạn muốn có thêm STT",
     },
@@ -25,7 +25,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "None",
+      class: "Thu",
       money: "5,000,000",
       note: null,
     },
@@ -35,7 +35,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "None",
+      class: "Chi",
       money: "5,000,000",
       note: "Ghi chú",
     },
@@ -45,7 +45,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "None",
+      class: "Thu",
       money: "2,000,000",
       note: "Ghi chú",
     },
@@ -55,7 +55,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "None",
+      class: "Chi",
       money: "3,000,000",
       note: "abc",
     },
@@ -65,7 +65,7 @@ const DetailList = () => {
       name: "Nguyễn Văn B",
       phone: "0123456789",
       date: "2025-08-19",
-      class: "None",
+      class: "Thu",
       money: "5,000,000",
       note: "",
     },
@@ -95,11 +95,12 @@ const DetailList = () => {
             className="!h-[40px] flex-2/3"
             showSearch
             placeholder="Lọc tên"
-            classOption={(input, option) =>
+            filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
             options={data.map((key) => ({ value: key.stt, label: key.name }))}
           />
+
           <input
             type="date"
             value={usedate}
@@ -110,10 +111,10 @@ const DetailList = () => {
       </div>
       <section className="md:flex-1 overflow-y-auto h-full mx-[10px]">
         <div className="space-y-3 pb-3">
-          {data.map((row, index) => (
-            <Groupcard key={row.id} data={{ ...row, stt: index + 1 }}>
+          {data.map((key, index) => (
+            <Groupcard key={key.id} data={{ ...key, stt: index + 1 }}>
               <Detailcard
-                data={{ ...row, stt: index + 1 }}
+                data={{ ...key, stt: index + 1 }}
                 className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
               />
             </Groupcard>

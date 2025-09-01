@@ -79,7 +79,7 @@ const Info = () => {
         </ChangePass>
         <CategoryManager>
           <Button type="default" block>
-            Danh sách phân loại
+            Danh sách các nhóm
             <VscSymbolClass className="text-purple-500 mr-[4px]" />
           </Button>
         </CategoryManager>
