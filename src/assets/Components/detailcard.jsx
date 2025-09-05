@@ -5,6 +5,7 @@ import Fieldclass from "./fields/class";
 import { FaRegEdit } from "react-icons/fa";
 import FieldNote from "./fields/note";
 import EditCardValue from "./edit_card";
+import dayjs from "dayjs";
 
 const Detailcard = ({ className, data }) => {
   return (
@@ -15,7 +16,9 @@ const Detailcard = ({ className, data }) => {
             #{data.stt}
           </span>
           <div className="flex gap-2">
-            <span className="text-xs text-gray-400">{data.date}</span>
+            <span className="text-xs text-gray-400">
+              {dayjs(data.thoigian).format("DD-MM-YYYY")}
+            </span>
             <EditCardValue data={data}>
               <FaRegEdit className="text-gray-400 " />
             </EditCardValue>
@@ -26,24 +29,24 @@ const Detailcard = ({ className, data }) => {
           <div className="flex w-full">
             <div className="flex-1">
               <div className="flex items-center">
-                <FieldName data={data.name} />
+                <FieldName data={data.khachhang} />
               </div>
               <div className="flex items-center">
-                <FieldPhone data={data.phone} />
+                <FieldPhone data={data.sdt} />
               </div>
             </div>
             <div className="flex-1">
               <div className="flex items-center">
-                <Fieldclass data={data.class} />
+                <Fieldclass data={data.loai} />
               </div>
               <div className="flex items-center">
-                <FieldMoney data={data.money} />
+                <FieldMoney data={data.sotien} />
               </div>
             </div>
           </div>
           <div className="flex items-start border-t border-gray-300 mt-[10px]">
             <div className="flex flex-col">
-              <FieldNote data={data.note} />
+              <FieldNote data={data.tenghichu} />
             </div>
           </div>
         </div>

@@ -36,8 +36,12 @@ const AddNote = ({ children, className, callback, users = [] }) => {
   };
 
   const userOptions = useMemo(
-    () => (users || []).map((u) => ({ label: u.name, value: String(u.id) })),
-    [users]
+    () =>
+      (user?.danhsachKH || []).map((u) => ({
+        label: u.hoten,
+        value: String(u.id),
+      })),
+    [user]
   );
 
   const showModal = () => {
@@ -62,8 +66,10 @@ const AddNote = ({ children, className, callback, users = [] }) => {
 
   // khi chọn người → auto phone
   const handleUserChange = (val) => {
-    const found = (users || []).find((u) => String(u.id) === String(val));
-    form.setFieldsValue({ phone: found?.phone || undefined });
+    const found = (user.danhsachKH.hoten || []).find(
+      (u) => String(u.hoten) === String(val)
+    );
+    form.setFieldsValue({ sdt: found?.sdt || undefined });
   };
 
   // sync tiền & note khi thay đổi số lượng/đơn giá (khi switch bật)
@@ -91,8 +97,8 @@ const AddNote = ({ children, className, callback, users = [] }) => {
         const newName = (values.newName || "").trim();
         const newPhone = (values.newPhone || "").trim();
         //thêm người mới
-        const newClient = { name: newName, sdt: newPhone };
-        api.post(`/client/`, newClient);
+        const newClient = { hoten: newName, sodienthoai: newPhone };
+        api.post(`/khachhang/`, newClient, user?.token);
       }
 
       const qty = Number(values.quantity || 0);
@@ -102,11 +108,11 @@ const AddNote = ({ children, className, callback, users = [] }) => {
 
       const payload = {
         tenghichu: "test",
-        khachhang: newName,
-        sdt: newPhone,
+        hotenkhachhang: newName,
+        sodienthoai: newPhone,
         thoigian: values.date ? dayjs(values.date) : undefined,
         phanloai: values.category, // in - out
-        loai: values.category,
+        loai: values.group,
         sotien: values.money ?? 0,
         noidung: noteFinal,
       };
@@ -221,6 +227,10 @@ const AddNote = ({ children, className, callback, users = [] }) => {
             <DatePicker format="YYYY-MM-DD   HH:mm" className="w-full" />
           </Form.Item>
 
+          <Form.Item label="Nhóm" name="group">
+            <Select options={[]} />
+          </Form.Item>
+
           <Form.Item
             label="Loại hình"
             name="category"
@@ -234,7 +244,6 @@ const AddNote = ({ children, className, callback, users = [] }) => {
             />
           </Form.Item>
 
-          {/* Hàng "Tùy chọn thêm" căn thẳng với wrapper (labelCol = 120px) */}
           <div
             className="flex items-center justify-between select-none"
             style={{ marginLeft: 120, marginBottom: 8 }}
@@ -245,10 +254,10 @@ const AddNote = ({ children, className, callback, users = [] }) => {
                 const next = !expandCalc;
                 setExpandCalc(next);
                 const all = form.getFieldsValue();
-                // cập nhật ghi chú khi mở/đóng
+
                 const extra = buildExtraNote(all.quantity, all.unitPrice, next);
                 form.setFieldsValue({ note: mergeNote(all.note, extra) });
-                // nếu mở và đã có quantity/unitPrice → sync luôn money
+
                 if (next) {
                   const q = Number(all.quantity || 0);
                   const p = Number(all.unitPrice || 0);

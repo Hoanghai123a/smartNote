@@ -6,6 +6,7 @@ import Overview from "./pages/page/overview";
 import Info from "./pages/page/info";
 import DetailList from "./pages/page/detail";
 import Home from "./pages/index";
+import FilterChip from "./pages/test";
 
 const App_router = () => {
   return (
@@ -16,6 +17,7 @@ const App_router = () => {
           <Route path="overview" element={<Overview />} />
           <Route path="detail" element={<DetailList />} />
           <Route path="info" element={<Info />} />
+          <Route path="test" element={<FilterChip />} />
         </Route>
 
         <Route path="/login" element={<Login_index />}></Route>

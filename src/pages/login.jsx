@@ -107,7 +107,7 @@ const Login_index = () => {
             type="primary"
             loading={loading}
             onClick={handleLogin}
-            className="mt-2 !py-5"
+            className="!mt-5 !py-5"
           >
             Đăng nhập
           </Button>

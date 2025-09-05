@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Button } from "antd";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, message } from "antd";
 import { Image } from "antd";
 import cuphong from "../../assets/img/cuphong.jpg";
 import { HiOutlineKey } from "react-icons/hi";
@@ -8,8 +8,13 @@ import { VscSymbolClass } from "react-icons/vsc";
 import { FaCamera } from "react-icons/fa";
 import ChangePass from "../../assets/Components/change_pass";
 import CategoryManager from "../../assets/Components/useclass";
+import { MdLogout } from "react-icons/md";
+import { useUser } from "../../stores/userContext";
+import api from "../../assets/Components/api";
 
 const Info = () => {
+  const { user, setUser } = useUser();
+  const nav = useNavigate();
   const { id_nguoidung } = useParams();
   useEffect(() => {
     console.log(id_nguoidung);
@@ -24,6 +29,19 @@ const Info = () => {
       const imageUrl = URL.createObjectURL(file);
       setPreview(imageUrl);
     }
+  };
+  const handleLogout = () => {
+    try {
+      document.cookie = "token=; Max-Age=0; path=/";
+    } catch (e) {
+      console.error("Clear cookie error:", e);
+    }
+    setUser(null);
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+
+    message.success("Đã đăng xuất");
+    nav("/login", { replace: true });
   };
 
   const handleClick = () => {
@@ -59,7 +77,7 @@ const Info = () => {
           />
         </div>
       </div>
-      <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 font-medium rounded-lg border-[1px] border-dashed bg-white py-[5px]">
+      <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 rounded-lg border-[1px] border-dashed bg-white py-[5px]">
         <div className="w-15  mx-2">Họ tên: </div>
         <div>Chủ cửa hàng</div>
 
@@ -70,19 +88,28 @@ const Info = () => {
         <div>Vinh Tiến - Bình Tuyền - Phú Thọ</div>
       </div>
 
-      <div className="w-60 mx-auto flex flex-col gap-3">
-        <ChangePass>
-          <Button type="default" block>
-            Đổi mật khẩu
-            <HiOutlineKey />
+      <span className="border-b-[1px] border-dashed text-[darkblue] font-medium">
+        Danh sách chức năng
+      </span>
+      <div className="gap-x-4 font-medium p-2">
+        <div className="w-full mx-auto flex flex-col gap-1 text-left">
+          <ChangePass>
+            <Button type="default" block>
+              Đổi mật khẩu
+              <HiOutlineKey />
+            </Button>
+          </ChangePass>
+          <CategoryManager>
+            <Button type="default" block>
+              Danh sách các nhóm
+              <VscSymbolClass className="text-purple-500 mr-[4px]" />
+            </Button>
+          </CategoryManager>
+          <Button type="default" block onClick={handleLogout}>
+            Đăng xuất
+            <MdLogout className="text-[#295fff] mr-[4px]" />
           </Button>
-        </ChangePass>
-        <CategoryManager>
-          <Button type="default" block>
-            Danh sách các nhóm
-            <VscSymbolClass className="text-purple-500 mr-[4px]" />
-          </Button>
-        </CategoryManager>
+        </div>
       </div>
     </div>
   );

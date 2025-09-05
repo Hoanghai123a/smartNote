@@ -30,6 +30,10 @@ const Home = () => {
       console.log(respon);
       respon.token = token;
       setUser(respon);
+      api.get(`/khachhang/`, token).then((e) => {
+        setUser((old) => ({ ...old, danhsachKH: e.results }));
+        console.log("KH" + e.results);
+      });
     });
     console.log(token);
   };
