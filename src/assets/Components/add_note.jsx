@@ -1,5 +1,5 @@
 import { DownOutlined } from "@ant-design/icons";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   Form,
@@ -14,18 +14,12 @@ import dayjs from "dayjs";
 import api from "./api";
 import { useUser } from "../../stores/userContext";
 
-const AddNote = ({ children, className, callback, users = [] }) => {
+const AddNote = ({ children, className, callback }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandCalc, setExpandCalc] = useState(false);
   const [form] = Form.useForm();
   const { user, setUser } = useUser();
 
-  const buildExtraNote = (q, p, enabled) => {
-    if (!enabled) return "";
-    const qty = Number(q || 0);
-    const price = Number(p || 0);
-    return ` Số lượng: ${qty}; Đơn giá: ${price.toLocaleString("vi-VN")}₫.`;
-  };
   const mergeNote = (note, extra) => {
     // xoá đoạn cũ nếu có để tránh nhân đôi
     const base = (note || "").replace(
@@ -34,15 +28,34 @@ const AddNote = ({ children, className, callback, users = [] }) => {
     );
     return (base + extra).trim();
   };
+  const formatPhone = (sdt) => {
+    const d = String(sdt ?? "").replace(/\D/g, ""); // giữ lại số
+    if (!d) return "";
+    if (d.length <= 4) return d;
+    if (d.length <= 7) return `${d.slice(0, 4)}-${d.slice(4)}`;
+    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`; // 4-3-3
+  };
+  const nameKey = (s = "") =>
+    s
+      .normalize("NFD") // tách dấu
+      .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " "); // gộp khoảng trắng
 
-  const userOptions = useMemo(
-    () =>
-      (user?.danhsachKH || []).map((u) => ({
-        label: u.hoten,
-        value: String(u.id),
-      })),
-    [user]
-  );
+  //lọc tên
+  const userOptions = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+    const uniq = [
+      ...new Map(
+        arr
+          .filter((u) => (u?.hoten ?? "").trim()) // bỏ tên rỗng
+          .map((u) => [nameKey(u.hoten), u]) // dùng key đã chuẩn hoá
+      ).values(),
+    ];
+
+    return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
+  }, [user?.danhsachKH]);
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -51,7 +64,7 @@ const AddNote = ({ children, className, callback, users = [] }) => {
       date: dayjs(),
       category: "in",
       isNewUser: false,
-      money: 0,
+      money: null,
       quantity: undefined,
       unitPrice: undefined,
       note: undefined,
@@ -63,25 +76,47 @@ const AddNote = ({ children, className, callback, users = [] }) => {
     setExpandCalc(false);
     form.resetFields();
   };
+  const quantity = Form.useWatch("quantity", form);
+  const unitPrice = Form.useWatch("unitPrice", form);
+  const noteVal = Form.useWatch("note", form);
 
   // khi chọn người → auto phone
-  const handleUserChange = (val) => {
-    const found = (user.danhsachKH.hoten || []).find(
-      (u) => String(u.hoten) === String(val)
-    );
-    form.setFieldsValue({ sdt: found?.sdt || undefined });
+  const handleUserChange = async (val) => {
+    const found = user?.danhsachKH?.find((u) => String(u.id) === String(val));
+    form.setFieldsValue({
+      userPhone: formatPhone(found?.sodienthoai) || undefined,
+    });
+    const values = await form.validateFields();
+    console.log("ten: " + values.userName);
   };
 
   // sync tiền & note khi thay đổi số lượng/đơn giá (khi switch bật)
-  const handleValuesChange = (_, all) => {
-    if (!expandCalc) return;
-    const q = Number(all.quantity || 0);
-    const p = Number(all.unitPrice || 0);
-    const total = Math.max(0, q * p);
-    form.setFieldsValue({ money: total });
+  useEffect(() => {
+    if (!expandCalc) return form.setFieldsValue({ money: 0, note: undefined });
 
-    const extra = buildExtraNote(q, p, true);
-    form.setFieldsValue({ note: mergeNote(all.note, extra) });
+    if (quantity == null || unitPrice == null) return;
+
+    const q = Number(quantity);
+    const p = Number(unitPrice);
+    if (!Number.isFinite(q) || !Number.isFinite(p)) return;
+
+    const total = Math.max(0, q * p);
+
+    const extraNote = ` Số lượng: ${q}; Đơn giá: ${p.toLocaleString(
+      "vi-VN"
+    )}₫.`;
+    form.setFieldsValue({
+      money: total,
+      note: mergeNote(noteVal, extraNote),
+    });
+  }, [expandCalc, quantity, unitPrice, noteVal, form]);
+
+  const toggleExtra = () => {
+    setExpandCalc((prev) => {
+      const next = !prev;
+      // khi MỞ mà đã có giá trị sẵn thì hiệu ứng trên sẽ tự chạy và set money/note
+      return next;
+    });
   };
 
   const handleOk = async () => {
@@ -90,31 +125,33 @@ const AddNote = ({ children, className, callback, users = [] }) => {
       const isNew = !!values.isNewUser;
 
       // chuẩn hoá name/phone
-      const newName = (values.newName || "").trim();
-      const newPhone = (values.newPhone || "").trim();
+      console.log("ten: " + values.userName);
+      const newName = (values.newName || values.userName).trim();
+      const newPhone = (values.newPhone || values.userPhone).trim();
 
       if (isNew) {
         const newName = (values.newName || "").trim();
         const newPhone = (values.newPhone || "").trim();
         //thêm người mới
-        const newClient = { hoten: newName, sodienthoai: newPhone };
+        const newClient = {
+          hoten: newName,
+          sodienthoai: newPhone,
+          description: "",
+        };
         api.post(`/khachhang/`, newClient, user?.token);
       }
-
-      const qty = Number(values.quantity || 0);
-      const price = Number(values.unitPrice || 0);
-      const extraNote = buildExtraNote(qty, price, expandCalc);
-      const noteFinal = mergeNote(values.note, extraNote);
 
       const payload = {
         tenghichu: "test",
         hotenkhachhang: newName,
         sodienthoai: newPhone,
-        thoigian: values.date ? dayjs(values.date) : undefined,
+        thoigian: values.date
+          ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
+          : undefined,
         phanloai: values.category, // in - out
-        loai: values.group,
+        loai: values.group ? values.group : undefined,
         sotien: values.money ?? 0,
-        noidung: noteFinal,
+        noidung: values.note,
       };
       console.log(payload);
       api
@@ -161,7 +198,6 @@ const AddNote = ({ children, className, callback, users = [] }) => {
           labelAlign="left"
           colon={false}
           style={{ maxWidth: 560 }}
-          onValuesChange={handleValuesChange}
         >
           {/* Người mới? */}
           <Form.Item name="isNewUser" valuePropName="checked" label="Người mới">
@@ -183,7 +219,7 @@ const AddNote = ({ children, className, callback, users = [] }) => {
                   <Input />
                 </Form.Item>
               ) : (
-                <Form.Item label="Họ tên" name="userId">
+                <Form.Item label="Họ tên" name="userName">
                   <Select
                     showSearch
                     placeholder="Chọn họ tên"
@@ -206,7 +242,7 @@ const AddNote = ({ children, className, callback, users = [] }) => {
               return (
                 <Form.Item
                   label={isNew ? "SĐT (mới)" : "SĐT"}
-                  name={isNew ? "newPhone" : "phone"}
+                  name={isNew ? "newPhone" : "userPhone"}
                   rules={
                     isNew
                       ? [{ required: true, message: "Vui lòng nhập SĐT" }]
@@ -250,20 +286,8 @@ const AddNote = ({ children, className, callback, users = [] }) => {
           >
             <button
               type="button"
-              onClick={() => {
-                const next = !expandCalc;
-                setExpandCalc(next);
-                const all = form.getFieldsValue();
-
-                const extra = buildExtraNote(all.quantity, all.unitPrice, next);
-                form.setFieldsValue({ note: mergeNote(all.note, extra) });
-
-                if (next) {
-                  const q = Number(all.quantity || 0);
-                  const p = Number(all.unitPrice || 0);
-                  form.setFieldsValue({ money: Math.max(0, q * p) });
-                }
-              }}
+              name="extra"
+              onClick={toggleExtra}
               className="w-full text-left text-gray-400 hover:text-gray-600 transition"
               aria-expanded={expandCalc}
             >
@@ -325,16 +349,13 @@ const AddNote = ({ children, className, callback, users = [] }) => {
           )}
 
           <div className="flex">
-            <Form.Item
-              label="Số tiền"
-              name="money"
-              rules={[{ required: true, message: "Vui lòng nhập số tiền" }]}
-            >
+            <Form.Item label="Số tiền" name="money">
               <InputNumber
                 style={{ width: "80%" }}
                 min={0}
                 formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 parser={(v) => v?.replace(/,/g, "")}
+                disabled={expandCalc}
               />
             </Form.Item>
           </div>

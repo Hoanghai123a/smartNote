@@ -31,18 +31,33 @@ const DetailList = () => {
   const [nameFilter, setNameFilter] = useState(undefined);
   const [dateRange, setDateRange] = useState([null, null]); // [dayjs|null, dayjs|null]
   const [start, end] = dateRange;
+  const nameKey = (s = "") =>
+    s
+      .normalize("NFD") // tách dấu
+      .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " "); // gộp khoảng trắng
 
-  // Options tên (unique)
-  const nameOptions = useMemo(() => {
-    const set = new Set((data || []).map((x) => x?.name).filter(Boolean));
-    return Array.from(set).map((n) => ({ value: n, label: n }));
-  }, [data]);
+  //lọc tên
+  const userOptions = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+    const uniq = [
+      ...new Map(
+        arr
+          .filter((u) => (u?.hoten ?? "").trim()) // bỏ tên rỗng
+          .map((u) => [nameKey(u.hoten), u]) // dùng key đã chuẩn hoá
+      ).values(),
+    ];
+
+    return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
+  }, [user?.danhsachKH]);
 
   const buildNotesUrl = ({ start, end, name }) => {
     const qs = new URLSearchParams();
+    if (name) qs.set("khachhang", name);
     if (start) qs.set("created_at_from", start.format("YYYY-MM-DD"));
     if (end) qs.set("created_at_to", end.format("YYYY-MM-DD"));
-    if (name) qs.set("name", name);
     const s = qs.toString();
     return `/notes/${s ? `?${s}` : ""}`;
   };
@@ -52,7 +67,6 @@ const DetailList = () => {
     api
       .get(url, user?.token)
       .then((res) => {
-        console.log(res?.results);
         setData(res?.results);
       })
       .catch((err) => {
@@ -66,24 +80,11 @@ const DetailList = () => {
     if (user?.token) fetchData();
   }, [user, dateRange, nameFilter]);
 
-  const handleAddNote = (newNote) => {
-    api
-      .post("/notes/", newNote, user?.token)
-      .then(() => {
-        message.success("Đã thêm ghi chú!");
-        fetchData();
-      })
-      .catch((err) => {
-        console.error(err);
-        message.error("Thêm ghi chú thất bại!");
-      });
-  };
-
   return (
     <div className="flex flex-col gap-4 md:flex-row h-full relative">
       <Add_note
         className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg mr-[8px] absolute right-2 bottom-10"
-        callback={handleAddNote}
+        callback={fetchData}
       >
         <AiOutlinePlus size={20} className="text-white" />
       </Add_note>
@@ -132,7 +133,7 @@ const DetailList = () => {
                   .toLowerCase()
                   .includes(input.toLowerCase())
               }
-              options={nameOptions}
+              options={userOptions}
               // getPopupContainer={(trigger) => trigger.parentElement}
             />
           )}
@@ -143,7 +144,6 @@ const DetailList = () => {
                 allowClear={false}
                 value={start}
                 onChange={(val) => {
-                  console.log(val.format("YYYY-MM-DD"));
                   setDateRange([val, end]);
                 }}
                 format="YYYY-MM-DD"
@@ -156,7 +156,6 @@ const DetailList = () => {
                 allowClear={false}
                 value={end}
                 onChange={(val) => {
-                  console.log(dateRange);
                   setDateRange([start, val]);
                 }}
                 format="YYYY-MM-DD"

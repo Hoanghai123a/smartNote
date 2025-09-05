@@ -24,7 +24,6 @@ const Detailcard = ({ className, data }) => {
             </EditCardValue>
           </div>
         </div>
-
         <div className="space-y-1 text-sm">
           <div className="flex w-full">
             <div className="flex-1">
@@ -39,8 +38,14 @@ const Detailcard = ({ className, data }) => {
               <div className="flex items-center">
                 <Fieldclass data={data.loai} />
               </div>
-              <div className="flex items-center">
-                <FieldMoney data={data.sotien} />
+              <div
+                className={`flex items-center ${
+                  data?.phanloai === "in" ? " text-[green]" : " text-[red]"
+                }`}
+              >
+                <FieldMoney
+                  data={parseInt(data?.sotien || 0).toLocaleString()}
+                />
               </div>
             </div>
           </div>
