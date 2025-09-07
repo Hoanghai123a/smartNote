@@ -17,7 +17,7 @@ const App_router = () => {
           <Route path="overview" element={<Overview />} />
           <Route path="detail" element={<DetailList />} />
           <Route path="info" element={<Info />} />
-          <Route path="test" element={<FilterChip />} />
+          <Route path="test" element={<Test />} />
         </Route>
 
         <Route path="/login" element={<Login_index />}></Route>

@@ -7,15 +7,17 @@ import { HiOutlineKey } from "react-icons/hi";
 import { VscSymbolClass } from "react-icons/vsc";
 import { FaCamera } from "react-icons/fa";
 import ChangePass from "../../assets/Components/change_pass";
-import CategoryManager from "../../assets/Components/useclass";
+import CategoryManager from "../../assets/Components/user_group.jsx";
 import { MdLogout } from "react-icons/md";
 import { useUser } from "../../stores/userContext";
 import api from "../../assets/Components/api";
+import { IoSettingsOutline } from "react-icons/io5";
 
 const Info = () => {
   const { user, setUser } = useUser();
   const nav = useNavigate();
   const { id_nguoidung } = useParams();
+
   useEffect(() => {
     console.log(id_nguoidung);
   }, [id_nguoidung]);
@@ -49,7 +51,7 @@ const Info = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 h-full relative">
       <div className="flex justify-center">
         <div className="relative">
           <Image
@@ -79,37 +81,33 @@ const Info = () => {
       </div>
       <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 rounded-lg border-[1px] border-dashed bg-white py-[5px]">
         <div className="w-15  mx-2">Họ tên: </div>
-        <div>Chủ cửa hàng</div>
+        <div>{user.username}</div>
 
         <div className="w-15  mx-2">SĐT: </div>
-        <div>012345678</div>
+        <div>{user.userphone ? user.userphone : "0123-456-789"}</div>
 
         <div className="w-15  mx-2">Địa chỉ: </div>
-        <div>Vinh Tiến - Bình Tuyền - Phú Thọ</div>
-      </div>
-
-      <span className="border-b-[1px] border-dashed text-[darkblue] font-medium">
-        Danh sách chức năng
-      </span>
-      <div className="gap-x-4 font-medium p-2">
-        <div className="w-full mx-auto flex flex-col gap-1 text-left">
-          <ChangePass>
-            <Button type="default" block>
-              Đổi mật khẩu
-              <HiOutlineKey />
-            </Button>
-          </ChangePass>
-          <CategoryManager>
-            <Button type="default" block>
-              Danh sách các nhóm
-              <VscSymbolClass className="text-purple-500 mr-[4px]" />
-            </Button>
-          </CategoryManager>
-          <Button type="default" block onClick={handleLogout}>
-            Đăng xuất
-            <MdLogout className="text-[#295fff] mr-[4px]" />
-          </Button>
+        <div>
+          {user.address ? user.address : "Vinh Tiến - Bình Tuyền - Phú Thọ"}
         </div>
+      </div>
+      <div className="w-full mx-auto flex flex-col gap-2 text-left">
+        <ChangePass>
+          <Button type="primary" className="!h-[40px]" block>
+            Đổi mật khẩu
+            <HiOutlineKey />
+          </Button>
+        </ChangePass>
+        <CategoryManager>
+          <Button type="primary" className="!h-[40px]" block>
+            Danh sách các nhóm
+            <VscSymbolClass className=" mr-[4px]" />
+          </Button>
+        </CategoryManager>
+        <Button type="text" block onClick={handleLogout}>
+          <span className="border-b-[#3d3d3d] border-b">Đăng xuất</span>
+          <MdLogout className="text-[#295fff] mr-[4px]" />
+        </Button>
       </div>
     </div>
   );

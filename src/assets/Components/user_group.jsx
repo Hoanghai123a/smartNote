@@ -4,11 +4,12 @@ import { Button, Input, Modal, message, Spin } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { FaRegEdit } from "react-icons/fa";
 import api from "./api"; // helper api bạn đang dùng
+import { useUser } from "../../stores/userContext";
 
 const normalize = (s) => (s ?? "").toString().trim();
 
 const CategoryManager = ({
-  baseUrl = "/categories",
+  baseUrl = "/loaighichu/",
   onSave,
   children,
   className = "",
@@ -22,7 +23,7 @@ const CategoryManager = ({
 
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
-
+  const { user, setUser } = useUser();
   const exists = (label, exceptId = null) => {
     const key = normalize(label).toLowerCase();
     return categories.some(
@@ -34,90 +35,73 @@ const CategoryManager = ({
   useEffect(() => {
     if (!isOpen) return;
     setLoading(true);
-    api
-      .get(baseUrl)
-      .then((res) => {
-        const seen = new Set();
-        const list = [];
-        (res || []).forEach((item) => {
-          const v = normalize(item?.name);
-          if (v && !seen.has(v.toLowerCase())) {
-            seen.add(v.toLowerCase());
-            list.push({ id: item.id, name: v });
-          }
-        });
-        setCategories(list);
-      })
-      .catch((err) => {
-        console.error(err);
-        message.error("Không thể tải danh sách phân loại.");
-      })
-      .finally(() => setLoading(false));
+    setCategories(user?.danhsachGroup);
+    setLoading(false);
   }, [isOpen, baseUrl]);
 
   // thêm
   const handleAddConfirm = () => {
     const v = normalize(inputVal);
-    if (!v) return message.warning("Nhập tên phân loại trước đã.");
-    if (exists(v)) return message.warning("Phân loại đã tồn tại.");
+    if (!v) return message.warning("Nhập tên phân nhóm trước đã.");
+    if (exists(v)) return message.warning("phân nhóm đã tồn tại.");
 
     api
-      .post(baseUrl, { name: v })
+      .post(baseUrl, { type: v, description: null }, user.token)
       .then((created) => {
         setCategories((prev) => [
           ...prev,
-          { id: created.id, name: normalize(created.name || v) },
+          { type: created.type, name: normalize(created.type || v) },
         ]);
-        message.success("Đã thêm phân loại.");
+        message.success("Đã thêm phân nhóm.");
         setAdding(false);
         setInputVal("");
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể thêm phân loại.");
+        message.error("Không thể thêm phân nhóm.");
       });
   };
 
   // xoá
   const handleRemove = (item) => {
     api
-      .delete(`${baseUrl}/${item.id}`)
+      .delete(`${baseUrl}${item.id}/`, user.token)
       .then(() => {
         setCategories((prev) => prev.filter((x) => x.id !== item.id));
-        message.success("Đã xoá phân loại.");
+        message.success("Đã xoá phân nhóm.");
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể xoá phân loại.");
+        message.error("Không thể xoá phân nhóm.");
       });
   };
 
   // sửa
   const handleEditConfirm = () => {
     const v = normalize(editVal);
-    if (!v) return message.warning("Nhập tên phân loại trước đã.");
-    if (exists(v, editingId)) return message.warning("Phân loại đã tồn tại.");
+    if (!v) return message.warning("Nhập tên phân nhóm trước đã.");
+    if (exists(v, editingId)) return message.warning("phân nhóm đã tồn tại.");
 
     api
-      .patch(`${baseUrl}/${editingId}`, { name: v })
-      .then(() => {
+      .patch(`${baseUrl}${editingId}/`, { type: v }, user.token)
+      .then((res) => {
         setCategories((prev) =>
-          prev.map((c) => (c.id === editingId ? { ...c, name: v } : c))
+          prev.map((c) => (c.id === editingId ? res : c))
         );
-        message.success("Đã sửa phân loại.");
+        message.success("Đã sửa phân nhóm.");
         setEditingId(null);
         setEditVal("");
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể sửa phân loại.");
+        message.error("Không thể sửa phân nhóm.");
       });
   };
 
   // save
   const handleSave = () => {
     onSave?.(categories);
-    message.success("Đã lưu danh sách phân loại.");
+    message.success("Đã lưu danh sách phân nhóm.");
     setIsOpen(false);
   };
 
@@ -129,7 +113,7 @@ const CategoryManager = ({
 
       <Modal
         className="!max-w-[420px]"
-        title="Danh sách phân loại"
+        title="Danh sách phân nhóm"
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         footer={[
@@ -169,13 +153,13 @@ const CategoryManager = ({
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm text-gray-800">{item.name}</span>
+                    <span className="text-sm text-gray-800">{item.type}</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => {
                           setEditingId(item.id);
-                          setEditVal(item.name);
+                          setEditVal(item.type);
                         }}
                         className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 active:scale-95 transition"
                       >
@@ -201,13 +185,13 @@ const CategoryManager = ({
                 className="h-11 w-full rounded-lg border border-dashed border-gray-300 text-gray-400 bg-white hover:bg-gray-50 hover:text-gray-500 active:scale-95 transition inline-flex items-center justify-center gap-2"
               >
                 <PlusOutlined />
-                <span>Thêm phân loại</span>
+                <span>Thêm phân nhóm</span>
               </button>
             ) : (
               <div className="flex items-center gap-2">
                 <Input
                   autoFocus
-                  placeholder="Nhập tên phân loại..."
+                  placeholder="Nhập tên phân nhóm..."
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   onPressEnter={handleAddConfirm}

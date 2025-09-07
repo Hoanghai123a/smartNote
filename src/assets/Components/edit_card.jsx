@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   Form,
@@ -34,7 +34,7 @@ const EditCardValue = ({
     }
     // map linh hoạt các field từ data
     form.setFieldsValue({
-      name: data.name ?? data.khachhang ?? "",
+      name: data.name ?? data.hoten ?? "",
       phone: data.phone ?? data.sodienthoai ?? "",
       date: data.date
         ? dayjs(data.date)
@@ -57,7 +57,7 @@ const EditCardValue = ({
         ...data,
         ...values,
         // chuẩn hoá ngày gửi lên server
-        date: values.date ? values.date.format("YYYY-MM-DD HH:mm") : null,
+        date: values.date ? values.date.format("YYYY-MM-DDTHH:mm:ss") : null,
       };
 
       await api.patch(`/notes/${data.id}/`, payload, user?.token);
@@ -96,6 +96,24 @@ const EditCardValue = ({
     if (v === undefined || v === null || v === "") return "";
     return String(v).replace(/,/g, "");
   };
+  const groupSelect = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
+
+    // loại phần tử rỗng và khử trùng lặp theo type (không phân biệt hoa/thường)
+    const seen = new Set();
+    const uniq = [];
+    for (const g of arr) {
+      const t = String(g?.type ?? "").trim();
+      if (!t) continue;
+      const key = t.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      uniq.push(g);
+    }
+
+    // label = type (hiển thị), value = id (dùng post)
+    return uniq.map((g) => ({ label: g.type, value: String(g.id) }));
+  }, [user?.danhsachGroup]);
 
   return (
     <>
@@ -110,7 +128,7 @@ const EditCardValue = ({
       {/* Modal chỉnh sửa */}
       <Modal
         title={`Chỉnh sửa #${data?.id ?? ""} ${
-          data?.khachhang ?? data?.name ?? ""
+          data?.hoten ?? data?.name ?? ""
         }`}
         open={isOpen}
         onCancel={() => setIsOpen(false)}
@@ -154,7 +172,15 @@ const EditCardValue = ({
             <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
           </Form.Item>
 
-          <Form.Item label="Phân loại" name="class">
+          <Form.Item label="Phân nhóm" name="class">
+            <Select options={groupSelect} />
+          </Form.Item>
+
+          <Form.Item
+            label="Loại hình"
+            name="category"
+            rules={[{ required: true, message: "Vui lòng chọn loại hình" }]}
+          >
             <Select
               options={[
                 { label: "Thu", value: "in" },

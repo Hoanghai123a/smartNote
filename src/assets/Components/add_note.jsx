@@ -20,14 +20,6 @@ const AddNote = ({ children, className, callback }) => {
   const [form] = Form.useForm();
   const { user, setUser } = useUser();
 
-  const mergeNote = (note, extra) => {
-    // xoá đoạn cũ nếu có để tránh nhân đôi
-    const base = (note || "").replace(
-      /\s*Số lượng:\s*\d+;\s*Đơn giá:\s*[\d.,]+₫\./,
-      ""
-    );
-    return (base + extra).trim();
-  };
   const formatPhone = (sdt) => {
     const d = String(sdt ?? "").replace(/\D/g, ""); // giữ lại số
     if (!d) return "";
@@ -44,7 +36,7 @@ const AddNote = ({ children, className, callback }) => {
       .replace(/\s+/g, " "); // gộp khoảng trắng
 
   //lọc tên
-  const userOptions = useMemo(() => {
+  const nameSelect = useMemo(() => {
     const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
     const uniq = [
       ...new Map(
@@ -56,6 +48,26 @@ const AddNote = ({ children, className, callback }) => {
 
     return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
   }, [user?.danhsachKH]);
+
+  //lọc nhóm ghi chú
+  const groupSelect = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
+
+    // loại phần tử rỗng và khử trùng lặp theo type (không phân biệt hoa/thường)
+    const seen = new Set();
+    const uniq = [];
+    for (const g of arr) {
+      const t = String(g?.type ?? "").trim();
+      if (!t) continue;
+      const key = t.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      uniq.push(g);
+    }
+
+    // label = type (hiển thị), value = id (dùng post)
+    return uniq.map((g) => ({ label: g.type, value: String(g.id) }));
+  }, [user?.danhsachGroup]);
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -78,7 +90,6 @@ const AddNote = ({ children, className, callback }) => {
   };
   const quantity = Form.useWatch("quantity", form);
   const unitPrice = Form.useWatch("unitPrice", form);
-  const noteVal = Form.useWatch("note", form);
 
   // khi chọn người → auto phone
   const handleUserChange = async (val) => {
@@ -91,10 +102,10 @@ const AddNote = ({ children, className, callback }) => {
   };
 
   // sync tiền & note khi thay đổi số lượng/đơn giá (khi switch bật)
+  const STRIP_QTY_PRICE =
+    /\s*Số lượng:\s*\d+(?:[.,]\d+)?;\s*Đơn giá:\s*[\d.,]+₫\./;
   useEffect(() => {
-    if (!expandCalc) return form.setFieldsValue({ money: 0, note: undefined });
-
-    if (quantity == null || unitPrice == null) return;
+    if (!expandCalc) return; // KHÔNG làm gì khi tắt tùy chọn
 
     const q = Number(quantity);
     const p = Number(unitPrice);
@@ -102,19 +113,29 @@ const AddNote = ({ children, className, callback }) => {
 
     const total = Math.max(0, q * p);
 
+    // Lấy note hiện tại nhưng KHÔNG đưa vào deps để tránh loop
+    const currentNote = form.getFieldValue("note") || "";
+    const base = currentNote.replace(STRIP_QTY_PRICE, "");
     const extraNote = ` Số lượng: ${q}; Đơn giá: ${p.toLocaleString(
       "vi-VN"
     )}₫.`;
+
+    // Chỉ set các field cần thiết, tránh ghi đè không cần thiết
     form.setFieldsValue({
       money: total,
-      note: mergeNote(noteVal, extraNote),
+      note: (base + extraNote).trim(),
     });
-  }, [expandCalc, quantity, unitPrice, noteVal, form]);
+  }, [expandCalc, quantity, unitPrice, form]);
 
   const toggleExtra = () => {
     setExpandCalc((prev) => {
       const next = !prev;
-      // khi MỞ mà đã có giá trị sẵn thì hiệu ứng trên sẽ tự chạy và set money/note
+      if (!next) {
+        // vừa tắt: gỡ phần tự động khỏi note, KHÔNG đụng money
+        const currentNote = form.getFieldValue("note") || "";
+        const base = currentNote.replace(STRIP_QTY_PRICE, "").trim();
+        form.setFieldsValue({ note: base });
+      }
       return next;
     });
   };
@@ -143,13 +164,13 @@ const AddNote = ({ children, className, callback }) => {
 
       const payload = {
         tenghichu: "test",
-        hotenkhachhang: newName,
+        khachhang: newName,
         sodienthoai: newPhone,
         thoigian: values.date
           ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
           : undefined,
         phanloai: values.category, // in - out
-        loai: values.group ? values.group : undefined,
+        loai: values.group ? Number(values.group) : undefined,
         sotien: values.money ?? 0,
         noidung: values.note,
       };
@@ -223,7 +244,7 @@ const AddNote = ({ children, className, callback }) => {
                   <Select
                     showSearch
                     placeholder="Chọn họ tên"
-                    options={userOptions}
+                    options={nameSelect}
                     optionFilterProp="label"
                     onChange={handleUserChange}
                   />
@@ -260,11 +281,11 @@ const AddNote = ({ children, className, callback }) => {
             name="date"
             rules={[{ required: true, message: "Vui lòng chọn ngày" }]}
           >
-            <DatePicker format="YYYY-MM-DD   HH:mm" className="w-full" />
+            <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
           </Form.Item>
 
-          <Form.Item label="Nhóm" name="group">
-            <Select options={[]} />
+          <Form.Item label="Nhóm" name="group" optionFilterProp="label">
+            <Select options={groupSelect} />
           </Form.Item>
 
           <Form.Item
