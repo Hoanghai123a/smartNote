@@ -7,11 +7,10 @@ import { HiOutlineKey } from "react-icons/hi";
 import { VscSymbolClass } from "react-icons/vsc";
 import { FaCamera } from "react-icons/fa";
 import ChangePass from "../../assets/Components/change_pass";
-import CategoryManager from "../../assets/Components/user_group.jsx";
 import { MdLogout } from "react-icons/md";
 import { useUser } from "../../stores/userContext";
-import api from "../../assets/Components/api";
-import { IoSettingsOutline } from "react-icons/io5";
+import ClientManager from "../../assets/Components/client.jsx";
+import CategoryManager from "../../assets/Components/Category.jsx";
 
 const Info = () => {
   const { user, setUser } = useUser();
@@ -81,7 +80,7 @@ const Info = () => {
       </div>
       <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 rounded-lg border-[1px] border-dashed bg-white py-[5px]">
         <div className="w-15  mx-2">Họ tên: </div>
-        <div>{user.username}</div>
+        <div>{user.username ? user.username : "Hi Tech"}</div>
 
         <div className="w-15  mx-2">SĐT: </div>
         <div>{user.userphone ? user.userphone : "0123-456-789"}</div>
@@ -104,6 +103,14 @@ const Info = () => {
             <VscSymbolClass className=" mr-[4px]" />
           </Button>
         </CategoryManager>
+
+        <ClientManager>
+          <Button type="primary" className="!h-[40px]" block>
+            Danh sách khách hàng
+            <VscSymbolClass className=" mr-[4px]" />
+          </Button>
+        </ClientManager>
+
         <Button type="text" block onClick={handleLogout}>
           <span className="border-b-[#3d3d3d] border-b">Đăng xuất</span>
           <MdLogout className="text-[#295fff] mr-[4px]" />

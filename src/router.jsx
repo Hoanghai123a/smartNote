@@ -6,7 +6,7 @@ import Overview from "./pages/page/overview";
 import Info from "./pages/page/info";
 import DetailList from "./pages/page/detail";
 import Home from "./pages/index";
-import FilterChip from "./pages/test";
+import Test from "./pages/test";
 
 const App_router = () => {
   return (

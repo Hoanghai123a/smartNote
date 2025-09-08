@@ -34,18 +34,52 @@ const EditCardValue = ({
     }
     // map linh hoạt các field từ data
     form.setFieldsValue({
-      name: data.name ?? data.hoten ?? "",
-      phone: data.phone ?? data.sodienthoai ?? "",
-      date: data.date
-        ? dayjs(data.date)
-        : data.thoigian
-        ? dayjs(data.thoigian)
-        : null,
-      class: data.class ?? data.phanloai ?? undefined,
-      money: data.money ?? data.sotien ?? 0,
-      note: data.note ?? data.noidung ?? "",
+      name: data.hoten ?? "",
+      phone: data.sodienthoai ?? "",
+      date: data.thoigian ? dayjs(data.thoigian) : null,
+      group: data.phanloai ?? undefined,
+      category: data.loai ?? "Thu",
+      money: data.sotien ?? 0,
+      note: data.noidung ?? "",
     });
     setIsOpen(true);
+  };
+  const nameKey = (s = "") =>
+    s
+      .normalize("NFD") // tách dấu
+      .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " "); // gộp khoảng trắng
+
+  //lọc tên
+  const nameSelect = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+    const uniq = [
+      ...new Map(
+        arr
+          .filter((u) => (u?.hoten ?? "").trim()) // bỏ tên rỗng
+          .map((u) => [nameKey(u.hoten), u]) // dùng key đã chuẩn hoá
+      ).values(),
+    ];
+
+    return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
+  }, [user?.danhsachKH]);
+
+  const formatPhone = (sdt) => {
+    const d = String(sdt ?? "").replace(/\D/g, ""); // giữ lại số
+    if (!d) return "";
+    if (d.length <= 4) return d;
+    if (d.length <= 7) return `${d.slice(0, 4)}-${d.slice(4)}`;
+    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`; // 4-3-3
+  };
+
+  // khi chọn người → auto phone
+  const handleUserChange = async (val) => {
+    const found = user?.danhsachKH?.find((u) => String(u.id) === String(val));
+    form.setFieldsValue({
+      phone: formatPhone(found?.sodienthoai) || undefined,
+    });
   };
 
   const handleOk = async () => {
@@ -96,10 +130,9 @@ const EditCardValue = ({
     if (v === undefined || v === null || v === "") return "";
     return String(v).replace(/,/g, "");
   };
+
   const groupSelect = useMemo(() => {
     const arr = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
-
-    // loại phần tử rỗng và khử trùng lặp theo type (không phân biệt hoa/thường)
     const seen = new Set();
     const uniq = [];
     for (const g of arr) {
@@ -156,23 +189,25 @@ const EditCardValue = ({
           wrapperCol={{ flex: 1 }}
           labelAlign="left"
         >
-          <Form.Item
-            label="Họ Tên"
-            name="name"
-            rules={[{ required: true, message: "Nhập họ tên" }]}
-          >
-            <Input />
+          <Form.Item label="Họ tên" name="name">
+            <Select
+              showSearch
+              placeholder="Chọn họ tên"
+              options={nameSelect}
+              optionFilterProp="label"
+              onChange={handleUserChange}
+            />
           </Form.Item>
 
-          <Form.Item label="SĐT" name="phone">
-            <Input />
+          <Form.Item label={"SĐT"} name={"phone"}>
+            <Input disabled={true} />
           </Form.Item>
 
           <Form.Item label="Ngày" name="date">
             <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
           </Form.Item>
 
-          <Form.Item label="Phân nhóm" name="class">
+          <Form.Item label="Phân nhóm" name="group">
             <Select options={groupSelect} />
           </Form.Item>
 

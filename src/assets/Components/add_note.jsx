@@ -97,8 +97,6 @@ const AddNote = ({ children, className, callback }) => {
     form.setFieldsValue({
       userPhone: formatPhone(found?.sodienthoai) || undefined,
     });
-    const values = await form.validateFields();
-    console.log("ten: " + values.userName);
   };
 
   // sync tiền & note khi thay đổi số lượng/đơn giá (khi switch bật)
@@ -131,7 +129,6 @@ const AddNote = ({ children, className, callback }) => {
     setExpandCalc((prev) => {
       const next = !prev;
       if (!next) {
-        // vừa tắt: gỡ phần tự động khỏi note, KHÔNG đụng money
         const currentNote = form.getFieldValue("note") || "";
         const base = currentNote.replace(STRIP_QTY_PRICE, "").trim();
         form.setFieldsValue({ note: base });
