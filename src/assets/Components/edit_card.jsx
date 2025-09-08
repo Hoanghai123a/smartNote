@@ -28,6 +28,7 @@ const EditCardValue = ({
   const { user } = useUser();
 
   const openModal = (e) => {
+    console.log(data);
     if (stopPropagation) {
       e.stopPropagation();
       e.preventDefault?.();
@@ -37,8 +38,8 @@ const EditCardValue = ({
       name: data.hoten ?? "",
       phone: data.sodienthoai ?? "",
       date: data.thoigian ? dayjs(data.thoigian) : null,
-      group: data.phanloai ?? undefined,
-      category: data.loai ?? "Thu",
+      group: data.loai ?? undefined,
+      category: data.phanloai ?? "Thu",
       money: data.sotien ?? 0,
       note: data.noidung ?? "",
     });

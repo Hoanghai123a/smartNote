@@ -80,14 +80,14 @@ const Info = () => {
       </div>
       <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 rounded-lg border-[1px] border-dashed bg-white py-[5px]">
         <div className="w-15  mx-2">Họ tên: </div>
-        <div>{user.username ? user.username : "Hi Tech"}</div>
+        <div>{user?.username ? user?.username : "Hi Tech"}</div>
 
         <div className="w-15  mx-2">SĐT: </div>
-        <div>{user.userphone ? user.userphone : "0123-456-789"}</div>
+        <div>{user?.userphone ? user?.userphone : "0123-456-789"}</div>
 
         <div className="w-15  mx-2">Địa chỉ: </div>
         <div>
-          {user.address ? user.address : "Vinh Tiến - Bình Tuyền - Phú Thọ"}
+          {user?.address ? user?.address : "Vinh Tiến - Bình Tuyền - Phú Thọ"}
         </div>
       </div>
       <div className="w-full mx-auto flex flex-col gap-2 text-left">
@@ -105,9 +105,12 @@ const Info = () => {
         </CategoryManager>
 
         <ClientManager>
-          <Button type="primary" className="!h-[40px]" block>
+          <Button
+            type="primary"
+            className="!h-[40px] mt-1 border !border-dashed"
+            block
+          >
             Danh sách khách hàng
-            <VscSymbolClass className=" mr-[4px]" />
           </Button>
         </ClientManager>
 

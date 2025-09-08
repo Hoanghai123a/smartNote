@@ -1,22 +1,23 @@
 // src/components/CategoryManager.jsx
 import React, { useEffect, useState } from "react";
-import { Button, Input, Modal, message, Spin } from "antd";
+import { Button, Input, Modal, message, Spin, Empty, Popconfirm } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { FaRegEdit } from "react-icons/fa";
-import api from "./api"; // helper api bạn đang dùng
+import api from "./api";
 import { useUser } from "../../stores/userContext";
+import FieldPhone from "./fields/phone";
 
 const normalize = (s) => (s ?? "").toString().trim();
 
 const ClientManager = ({
-  baseUrl = "/loaighichu/",
+  baseUrl = "/khachhang/",
   onSave,
   children,
   className = "",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const [client, setClient] = useState([]);
 
   const [adding, setAdding] = useState(false);
   const [inputVal, setInputVal] = useState("");
@@ -24,84 +25,100 @@ const ClientManager = ({
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const { user, setUser } = useUser();
+
   const exists = (label, exceptId = null) => {
     const key = normalize(label).toLowerCase();
-    return categories.some(
-      (c) => c.id !== exceptId && normalize(c.name).toLowerCase() === key
+    return client.some(
+      (c) => c.id !== exceptId && normalize(c.hoten).toLowerCase() === key
     );
   };
 
   // tải từ API khi mở modal
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
-    setCategories(user?.danhsachGroup);
-    setLoading(false);
-  }, [isOpen, baseUrl]);
-
+    const list = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+    setClient(list);
+  }, [isOpen, user]);
   // thêm
   const handleAddConfirm = () => {
     const v = normalize(inputVal);
-    if (!v) return message.warning("Nhập tên phân nhóm trước đã.");
-    if (exists(v)) return message.warning("phân nhóm đã tồn tại.");
+    if (!v) return message.warning("Nhập tên trước đã.");
+    if (exists(v)) return message.warning("Khách hàng đã tồn tại.");
 
+    setLoading(true);
     api
-      .post(baseUrl, { type: v, description: null }, user.token)
+      .post(baseUrl, { type: v, description: null }, user?.token)
       .then((created) => {
-        setCategories((prev) => [
-          ...prev,
-          { type: created.type, name: normalize(created.type || v) },
-        ]);
-        message.success("Đã thêm phân nhóm.");
-        setAdding(false);
+        if (!created?.id) {
+          // fallback: re-fetch để chắc dữ liệu
+          return api.get(baseUrl, user?.token).then((list) => {
+            setClient(Array.isArray(list) ? list : []);
+          });
+        }
+        setClient((prev) => [...prev, created]);
+        message.success("Đã thêm.");
         setInputVal("");
+        setAdding(false);
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể thêm phân nhóm.");
-      });
+        message.error("Không thể thêm.");
+      })
+      .finally(() => setLoading(false));
   };
 
   // xoá
   const handleRemove = (item) => {
+    if (!user?.token) return message.error("Thiếu token.");
+    setLoading(true);
     api
-      .delete(`${baseUrl}${item.id}/`, user.token)
+      .delete(`${baseUrl}${item.id}/`, user?.token)
       .then(() => {
-        setCategories((prev) => prev.filter((x) => x.id !== item.id));
-        message.success("Đã xoá phân nhóm.");
+        setClient((prev) => prev.filter((x) => x.id !== item.id));
+        message.success("Đã xoá.");
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể xoá phân nhóm.");
-      });
+        message.error("Không thể xoá.");
+      })
+      .finally(() => setLoading(false));
   };
 
   // sửa
   const handleEditConfirm = () => {
     const v = normalize(editVal);
-    if (!v) return message.warning("Nhập tên phân nhóm trước đã.");
-    if (exists(v, editingId)) return message.warning("phân nhóm đã tồn tại.");
+    if (!v) return message.warning("Nhập tên trước đã.");
+    if (exists(v, editingId)) return message.warning("Đã tồn tại.");
+    if (!user?.token) return message.error("Thiếu token.");
 
+    setLoading(true);
     api
-      .patch(`${baseUrl}${editingId}/`, { type: v }, user.token)
+      .patch(`${baseUrl}${editingId}/`, { type: v }, user?.token)
       .then((res) => {
-        setCategories((prev) =>
-          prev.map((c) => (c.id === editingId ? res : c))
-        );
-        message.success("Đã sửa phân nhóm.");
-        setEditingId(null);
-        setEditVal("");
+        if (!res?.id) {
+          // fallback: re-fetch
+          return api.get(baseUrl, user?.token).then((list) => {
+            setClient(Array.isArray(list) ? list : []);
+          });
+        }
+        setClient((prev) => prev.map((c) => (c.id === editingId ? res : c)));
+        message.success("Đã sửa.");
       })
       .catch((err) => {
         console.error(err);
-        message.error("Không thể sửa phân nhóm.");
+        message.error("Không thể sửa.");
+      })
+      .finally(() => {
+        setEditingId(null);
+        setEditVal("");
+        setLoading(false);
       });
   };
 
   // save
   const handleSave = () => {
-    onSave?.(categories);
-    message.success("Đã lưu danh sách phân nhóm.");
+    onSave?.(client);
+    message.success("Đã lưu danh sách.");
     setIsOpen(false);
   };
 
@@ -113,21 +130,34 @@ const ClientManager = ({
 
       <Modal
         className="!max-w-[420px]"
-        title="Danh sách phân nhóm"
+        title="Danh sách khách hàng"
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         footer={[
-          <Button key="cancel" onClick={() => setIsOpen(false)}>
+          <Button
+            key="cancel"
+            onClick={() => setIsOpen(false)}
+            disabled={loading}
+          >
             Hủy
           </Button>,
-          <Button key="save" type="primary" onClick={handleSave}>
+          <Button
+            key="save"
+            type="primary"
+            onClick={handleSave}
+            disabled={loading}
+          >
             Lưu
           </Button>,
         ]}
       >
         <Spin spinning={loading}>
           <div className="flex flex-col gap-2">
-            {categories.map((item) => (
+            {client.length === 0 && !adding ? (
+              <Empty description="Chưa có" />
+            ) : null}
+
+            {client.map((item) => (
               <div
                 key={item.id}
                 className="min-h-11 px-3 py-2 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 shadow-sm"
@@ -139,39 +169,63 @@ const ClientManager = ({
                       value={editVal}
                       onChange={(e) => setEditVal(e.target.value)}
                       onPressEnter={handleEditConfirm}
+                      disabled={loading}
                     />
                     <Button
                       size="small"
                       type="primary"
                       onClick={handleEditConfirm}
+                      loading={loading}
                     >
                       OK
                     </Button>
-                    <Button size="small" onClick={() => setEditingId(null)}>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditVal("");
+                      }}
+                      disabled={loading}
+                    >
                       Hủy
                     </Button>
                   </div>
                 ) : (
                   <>
-                    <span className="text-sm text-gray-800">{item.type}</span>
+                    <div className="text-sm text-gray-800">
+                      <div>{item.hoten}</div>
+                      <div className="pl-3">
+                        <FieldPhone data={item.sodienthoai}></FieldPhone>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => {
                           setEditingId(item.id);
-                          setEditVal(item.type);
+                          setEditVal(item.hoten);
                         }}
                         className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 active:scale-95 transition"
+                        disabled={loading}
                       >
                         <FaRegEdit className="text-gray-500 text-sm" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(item)}
-                        className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 active:scale-95 transition"
+                      <Popconfirm
+                        title="Xoá khách hàng?"
+                        description={`Bạn chắc chắn xoá "${item.hoten}"?`}
+                        okText="Xoá"
+                        cancelText="Hủy"
+                        onConfirm={() => handleRemove(item)}
+                        okButtonProps={{ danger: true, loading }}
                       >
-                        <CloseOutlined className="text-gray-500 text-xs" />
-                      </button>
+                        <button
+                          type="button"
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 active:scale-95 transition"
+                          disabled={loading}
+                        >
+                          <CloseOutlined className="text-gray-500 text-xs" />
+                        </button>
+                      </Popconfirm>
                     </div>
                   </>
                 )}
@@ -183,22 +237,36 @@ const ClientManager = ({
                 type="button"
                 onClick={() => setAdding(true)}
                 className="h-11 w-full rounded-lg border border-dashed border-gray-300 text-gray-400 bg-white hover:bg-gray-50 hover:text-gray-500 active:scale-95 transition inline-flex items-center justify-center gap-2"
+                disabled={loading}
               >
                 <PlusOutlined />
-                <span>Thêm phân nhóm</span>
+                <span>Thêm khách hàng</span>
               </button>
             ) : (
               <div className="flex items-center gap-2">
                 <Input
                   autoFocus
-                  placeholder="Nhập tên phân nhóm..."
+                  placeholder="Nhập tên khách hàng..."
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
                   onPressEnter={handleAddConfirm}
                   className="h-11"
+                  disabled={loading}
                 />
-                <Button onClick={() => setAdding(false)}>Hủy</Button>
-                <Button type="primary" onClick={handleAddConfirm}>
+                <Button
+                  onClick={() => {
+                    setAdding(false);
+                    setInputVal("");
+                  }}
+                  disabled={loading}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={handleAddConfirm}
+                  loading={loading}
+                >
                   Thêm
                 </Button>
               </div>

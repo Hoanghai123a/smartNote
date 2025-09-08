@@ -144,7 +144,7 @@ const AddNote = ({ children, className, callback }) => {
 
       // chuẩn hoá name/phone
       console.log("ten: " + values.userName);
-      const newName = (values.newName || values.userName).trim();
+      let KHID = null;
       const newPhone = (values.newPhone || values.userPhone).trim();
 
       if (isNew) {
@@ -156,12 +156,14 @@ const AddNote = ({ children, className, callback }) => {
           sodienthoai: newPhone,
           description: "",
         };
-        api.post(`/khachhang/`, newClient, user?.token);
+        api.post(`/khachhang/`, newClient, user?.token).then((val) => {
+          KHID = val.id;
+        });
       }
 
       const payload = {
         tenghichu: "test",
-        khachhang: newName,
+        khachhang: KHID,
         sodienthoai: newPhone,
         thoigian: values.date
           ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
@@ -281,13 +283,13 @@ const AddNote = ({ children, className, callback }) => {
             <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
           </Form.Item>
 
-          <Form.Item label="Nhóm" name="group" optionFilterProp="label">
-            <Select options={groupSelect} />
+          <Form.Item label="Nhóm" name="group">
+            <Select options={groupSelect} optionFilterProp="label" />
           </Form.Item>
 
           <Form.Item
             label="Loại hình"
-            name="category"
+            name="  "
             rules={[{ required: true, message: "Vui lòng chọn loại hình" }]}
           >
             <Select
