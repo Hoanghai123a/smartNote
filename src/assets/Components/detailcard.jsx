@@ -75,7 +75,7 @@ const Detailcard = ({ className, data }) => {
 
           <div className="flex items-start border-t border-gray-300 mt-[10px]">
             <div className="flex flex-col">
-              <FieldNote data={data?.tenghichu ?? ""} />
+              <FieldNote data={data?.noidung ?? ""} />
             </div>
           </div>
         </div>

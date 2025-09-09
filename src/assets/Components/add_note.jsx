@@ -143,7 +143,6 @@ const AddNote = ({ children, className, callback }) => {
       const isNew = !!values.isNewUser;
 
       // chuẩn hoá name/phone
-      console.log("ten: " + values.userName);
       let KHID = null;
       const newPhone = (values.newPhone || values.userPhone).trim();
 
@@ -156,14 +155,12 @@ const AddNote = ({ children, className, callback }) => {
           sodienthoai: newPhone,
           description: "",
         };
-        api.post(`/khachhang/`, newClient, user?.token).then((val) => {
-          KHID = val.id;
-        });
+        api.post(`/khachhang/`, newClient, user?.token);
       }
 
       const payload = {
         tenghichu: "test",
-        khachhang: KHID,
+        khachhang: values.userName,
         sodienthoai: newPhone,
         thoigian: values.date
           ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
