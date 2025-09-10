@@ -25,57 +25,54 @@ const EditCardValue = ({
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
 
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   const openModal = (e) => {
-    console.log(data);
     if (stopPropagation) {
       e.stopPropagation();
       e.preventDefault?.();
     }
-    // map linh hoạt các field từ data
+    // set form value từ data
     form.setFieldsValue({
-      name: data.hoten ?? "",
+      name: data.khachhang ? String(data.khachhang) : undefined,
       phone: data.sodienthoai ?? "",
       date: data.thoigian ? dayjs(data.thoigian) : null,
-      group: data.loai ?? undefined,
-      category: data.phanloai ?? "Thu",
+      group: data.loai ? String(data.loai) : undefined,
+      category: data.phanloai ?? "in",
       money: data.sotien ?? 0,
       note: data.noidung ?? "",
     });
     setIsOpen(true);
   };
+
   const nameKey = (s = "") =>
     s
-      .normalize("NFD") // tách dấu
-      .replace(/[\u0300-\u036f]/g, "") // bỏ dấu
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, " "); // gộp khoảng trắng
+      .replace(/\s+/g, " ");
 
-  //lọc tên
   const nameSelect = useMemo(() => {
     const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
     const uniq = [
       ...new Map(
         arr
-          .filter((u) => (u?.hoten ?? "").trim()) // bỏ tên rỗng
-          .map((u) => [nameKey(u.hoten), u]) // dùng key đã chuẩn hoá
+          .filter((u) => (u?.hoten ?? "").trim())
+          .map((u) => [nameKey(u.hoten), u])
       ).values(),
     ];
-
     return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
   }, [user?.danhsachKH]);
 
   const formatPhone = (sdt) => {
-    const d = String(sdt ?? "").replace(/\D/g, ""); // giữ lại số
+    const d = String(sdt ?? "").replace(/\D/g, "");
     if (!d) return "";
     if (d.length <= 4) return d;
     if (d.length <= 7) return `${d.slice(0, 4)}-${d.slice(4)}`;
-    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`; // 4-3-3
+    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`;
   };
 
-  // khi chọn người → auto phone
   const handleUserChange = async (val) => {
     const found = user?.danhsachKH?.find((u) => String(u.id) === String(val));
     form.setFieldsValue({
@@ -89,16 +86,30 @@ const EditCardValue = ({
       const values = await form.validateFields();
 
       const payload = {
-        ...data,
-        ...values,
-        // chuẩn hoá ngày gửi lên server
-        date: values.date ? values.date.format("YYYY-MM-DDTHH:mm:ss") : null,
+        khachhang: values.name ? Number(values.name) : null,
+        thoigian: values.date
+          ? values.date.format("YYYY-MM-DDTHH:mm:ss")
+          : null,
+        loai: values.group ? Number(values.group) : null,
+        phanloai: values.category,
+        sotien: values.money ?? 0,
+        noidung: values.note ?? "",
       };
 
-      await api.patch(`/notes/${data.id}/`, payload, user?.token);
+      const res = await api.patch(`/notes/${data.id}/`, payload, user?.token);
+
+      // cập nhật lại user.danhsachNote
+      setUser((old) => ({
+        ...old,
+        danhsachNote: (Array.isArray(old?.danhsachNote)
+          ? old.danhsachNote
+          : []
+        ).map((n) => (n.id === res.id ? res : n)),
+      }));
+
       message.success("Đã lưu");
       setIsOpen(false);
-      onSaved?.(payload);
+      onSaved?.(res);
     } catch (err) {
       console.error("Lưu thất bại:", err);
       message.error("Lưu thất bại");
@@ -111,6 +122,13 @@ const EditCardValue = ({
     try {
       setDeleting(true);
       await api.delete(`/notes/${data.id}/`, user?.token);
+      setUser((row) => ({
+        ...row,
+        danhsachNote: (Array.isArray(row?.danhsachNote)
+          ? row.danhsachNote
+          : []
+        ).filter((note) => note.id !== data.id),
+      }));
       message.success("Đã xóa ghi chú");
       setIsOpen(false);
     } catch (e) {
@@ -144,8 +162,6 @@ const EditCardValue = ({
       seen.add(key);
       uniq.push(g);
     }
-
-    // label = type (hiển thị), value = id (dùng post)
     return uniq.map((g) => ({ label: g.type, value: String(g.id) }));
   }, [user?.danhsachGroup]);
 
@@ -159,11 +175,8 @@ const EditCardValue = ({
         {children}
       </button>
 
-      {/* Modal chỉnh sửa */}
       <Modal
-        title={`Chỉnh sửa #${data?.id ?? ""} ${
-          data?.hoten ?? data?.name ?? ""
-        }`}
+        title={`Chỉnh sửa #${data?.id ?? ""} ${data?.hoten ?? ""}`}
         open={isOpen}
         onCancel={() => setIsOpen(false)}
         footer={[
@@ -174,7 +187,7 @@ const EditCardValue = ({
             key="delete"
             danger
             loading={deleting}
-            onClick={() => setShowDelete(true)} // mở modal xác nhận xóa
+            onClick={() => setShowDelete(true)}
           >
             Xóa
           </Button>,
@@ -190,7 +203,11 @@ const EditCardValue = ({
           wrapperCol={{ flex: 1 }}
           labelAlign="left"
         >
-          <Form.Item label="Họ tên" name="name">
+          <Form.Item
+            label="Họ tên"
+            name="name"
+            rules={[{ required: true, message: "Chọn khách hàng" }]}
+          >
             <Select
               showSearch
               placeholder="Chọn họ tên"
@@ -200,7 +217,7 @@ const EditCardValue = ({
             />
           </Form.Item>
 
-          <Form.Item label={"SĐT"} name={"phone"}>
+          <Form.Item label="SĐT" name="phone">
             <Input disabled={true} />
           </Form.Item>
 

@@ -1,5 +1,5 @@
 // src/components/CategoryManager.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button, Input, Modal, message, Spin, Empty, Popconfirm } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { FaRegEdit } from "react-icons/fa";
@@ -10,13 +10,11 @@ const normalize = (s) => (s ?? "").toString().trim();
 
 const CategoryManager = ({
   baseUrl = "/loaighichu/",
-  onSave,
   children,
   className = "",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
 
   const [adding, setAdding] = useState(false);
   const [inputVal, setInputVal] = useState("");
@@ -25,19 +23,16 @@ const CategoryManager = ({
   const [editVal, setEditVal] = useState("");
   const { user, setUser } = useUser();
 
+  // chuẩn hoá list phân nhóm
+  const list = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
+
   const exists = (label, exceptId = null) => {
     const key = normalize(label).toLowerCase();
-    return categories.some(
+    return list.some(
       (c) => c.id !== exceptId && normalize(c.type).toLowerCase() === key
     );
   };
 
-  // tải từ API khi mở modal
-  useEffect(() => {
-    if (!isOpen) return;
-    const list = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
-    setCategories(list);
-  }, [isOpen, user]);
   // thêm
   const handleAddConfirm = () => {
     const v = normalize(inputVal);
@@ -49,12 +44,21 @@ const CategoryManager = ({
       .post(baseUrl, { type: v, description: null }, user?.token)
       .then((created) => {
         if (!created?.id) {
-          // fallback: re-fetch để chắc dữ liệu
+          // fallback: re-fetch
           return api.get(baseUrl, user?.token).then((list) => {
-            setCategories(Array.isArray(list) ? list : []);
+            setUser((old) => ({
+              ...old,
+              danhsachGroup: Array.isArray(list) ? list : [],
+            }));
           });
         }
-        setCategories((prev) => [...prev, created]);
+        setUser((old) => ({
+          ...old,
+          danhsachGroup: [
+            ...(Array.isArray(old?.danhsachGroup) ? old.danhsachGroup : []),
+            created,
+          ],
+        }));
         message.success("Đã thêm phân nhóm.");
         setInputVal("");
         setAdding(false);
@@ -73,7 +77,13 @@ const CategoryManager = ({
     api
       .delete(`${baseUrl}${item.id}/`, user?.token)
       .then(() => {
-        setCategories((prev) => prev.filter((x) => x.id !== item.id));
+        setUser((old) => ({
+          ...old,
+          danhsachGroup: (Array.isArray(old?.danhsachGroup)
+            ? old.danhsachGroup
+            : []
+          ).filter((x) => x.id !== item.id),
+        }));
         message.success("Đã xoá phân nhóm.");
       })
       .catch((err) => {
@@ -97,12 +107,19 @@ const CategoryManager = ({
         if (!res?.id) {
           // fallback: re-fetch
           return api.get(baseUrl, user?.token).then((list) => {
-            setCategories(Array.isArray(list) ? list : []);
+            setUser((old) => ({
+              ...old,
+              danhsachGroup: Array.isArray(list) ? list : [],
+            }));
           });
         }
-        setCategories((prev) =>
-          prev.map((c) => (c.id === editingId ? res : c))
-        );
+        setUser((old) => ({
+          ...old,
+          danhsachGroup: (Array.isArray(old?.danhsachGroup)
+            ? old.danhsachGroup
+            : []
+          ).map((c) => (c.id === editingId ? res : c)),
+        }));
         message.success("Đã sửa phân nhóm.");
       })
       .catch((err) => {
@@ -116,13 +133,6 @@ const CategoryManager = ({
       });
   };
 
-  // save
-  const handleSave = () => {
-    onSave?.(categories);
-    message.success("Đã lưu danh sách phân nhóm.");
-    setIsOpen(false);
-  };
-
   return (
     <div className={className}>
       <div onClick={() => setIsOpen(true)} data-no-modal>
@@ -130,35 +140,19 @@ const CategoryManager = ({
       </div>
 
       <Modal
-        className="!max-w-[420px]"
+        className="!max-w-[350px]"
         title="Danh sách phân nhóm"
         open={isOpen}
         onCancel={() => setIsOpen(false)}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => setIsOpen(false)}
-            disabled={loading}
-          >
-            Hủy
-          </Button>,
-          <Button
-            key="save"
-            type="primary"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            Lưu
-          </Button>,
-        ]}
+        footer={[]}
       >
         <Spin spinning={loading}>
           <div className="flex flex-col gap-2">
-            {categories.length === 0 && !adding ? (
+            {list.length === 0 && !adding ? (
               <Empty description="Chưa có phân nhóm" />
             ) : null}
 
-            {categories.map((item) => (
+            {list.map((item) => (
               <div
                 key={item.id}
                 className="min-h-11 px-3 py-2 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 shadow-sm"

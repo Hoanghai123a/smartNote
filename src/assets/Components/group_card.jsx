@@ -10,8 +10,6 @@ import FieldPhone from "./fields/phone";
 import FieldNote from "./fields/note";
 
 const Groupcard = ({ children, data, className }) => {
-  console.log(data);
-
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const handleClick = (e) => {
     if (

@@ -8,13 +8,15 @@ import {
   message,
   DatePicker,
   Select,
-  Checkbox,
 } from "antd";
 import dayjs from "dayjs";
 import api from "./api";
 import { useUser } from "../../stores/userContext";
+import ClientManager from "./client";
+import { AiOutlinePlus } from "react-icons/ai";
+import CategoryManager from "./Category";
 
-const AddNote = ({ children, className, callback }) => {
+const AddNote = ({ children, className }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandCalc, setExpandCalc] = useState(false);
   const [form] = Form.useForm();
@@ -69,24 +71,18 @@ const AddNote = ({ children, className, callback }) => {
     return uniq.map((g) => ({ label: g.type, value: String(g.id) }));
   }, [user?.danhsachGroup]);
 
+  // state loading khi lưu
+  const [saving, setSaving] = useState(false);
+
+  // mở modal: chỉ set cờ, KHÔNG setFieldsValue
   const showModal = () => {
-    setIsModalOpen(true);
     setExpandCalc(false);
-    form.setFieldsValue({
-      date: dayjs(),
-      category: "in",
-      isNewUser: false,
-      money: null,
-      quantity: undefined,
-      unitPrice: undefined,
-      note: undefined,
-    });
+    setIsModalOpen(true);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
     setExpandCalc(false);
-    form.resetFields();
   };
   const quantity = Form.useWatch("quantity", form);
   const unitPrice = Form.useWatch("unitPrice", form);
@@ -102,8 +98,9 @@ const AddNote = ({ children, className, callback }) => {
   // sync tiền & note khi thay đổi số lượng/đơn giá (khi switch bật)
   const STRIP_QTY_PRICE =
     /\s*Số lượng:\s*\d+(?:[.,]\d+)?;\s*Đơn giá:\s*[\d.,]+₫\./;
+
   useEffect(() => {
-    if (!expandCalc) return; // KHÔNG làm gì khi tắt tùy chọn
+    if (!expandCalc) return;
 
     const q = Number(quantity);
     const p = Number(unitPrice);
@@ -111,18 +108,20 @@ const AddNote = ({ children, className, callback }) => {
 
     const total = Math.max(0, q * p);
 
-    // Lấy note hiện tại nhưng KHÔNG đưa vào deps để tránh loop
     const currentNote = form.getFieldValue("note") || "";
     const base = currentNote.replace(STRIP_QTY_PRICE, "");
     const extraNote = ` Số lượng: ${q}; Đơn giá: ${p.toLocaleString(
       "vi-VN"
     )}₫.`;
+    const nextNote = (base + extraNote).trim();
 
-    // Chỉ set các field cần thiết, tránh ghi đè không cần thiết
-    form.setFieldsValue({
-      money: total,
-      note: (base + extraNote).trim(),
-    });
+    const { money: curMoney, note: curNote } = form.getFieldsValue([
+      "money",
+      "note",
+    ]);
+    if (curMoney !== total || (curNote || "").trim() !== nextNote) {
+      form.setFieldsValue({ money: total, note: nextNote });
+    }
   }, [expandCalc, quantity, unitPrice, form]);
 
   const toggleExtra = () => {
@@ -138,55 +137,36 @@ const AddNote = ({ children, className, callback }) => {
   };
 
   const handleOk = async () => {
-    try {
-      const values = await form.validateFields();
-      const isNew = !!values.isNewUser;
+    setSaving(true);
+    const values = await form.validateFields();
 
-      // chuẩn hoá name/phone
-      let KHID = null;
-      const newPhone = (values.newPhone || values.userPhone).trim();
+    const payload = {
+      tenghichu: "test",
+      khachhang: values.userName, // value của Select là id đã OK
+      thoigian: values.date
+        ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
+        : undefined,
+      phanloai: values.category, // in - out
+      loai: values.group ? Number(values.group) : undefined,
+      sotien: values.money ?? 0,
+      noidung: values.note,
+    };
 
-      if (isNew) {
-        const newName = (values.newName || "").trim();
-        const newPhone = (values.newPhone || "").trim();
-        //thêm người mới
-        const newClient = {
-          hoten: newName,
-          sodienthoai: newPhone,
-          description: "",
-        };
-        api.post(`/khachhang/`, newClient, user?.token);
-      }
-
-      const payload = {
-        tenghichu: "test",
-        khachhang: values.userName,
-        sodienthoai: newPhone,
-        thoigian: values.date
-          ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
-          : undefined,
-        phanloai: values.category, // in - out
-        loai: values.group ? Number(values.group) : undefined,
-        sotien: values.money ?? 0,
-        noidung: values.note,
-      };
-      console.log(payload);
-      api
-        .post("/notes/", payload, user.token)
-        .then((respon) => {
-          console.log(respon);
-          message.success("Thêm ghi chú thành công!");
-          callback?.(payload);
-          handleCancel();
-        })
-        .catch((err) => {
-          console.log(err);
+    api
+      .post("/notes/", payload, user.token)
+      .then((res) => {
+        console.log("payload", payload);
+        setUser((val) => ({
+          ...val,
+          danhsachNote: [...(val?.danhsachNote || []), res],
+        }));
+        message.success("Thêm ghi chú thành công!");
+      })
+      .catch((err) => {
+        console.error("Lỗi thêm ghi chú:", err),
           message.error("Không thể thêm ghi chú.");
-        });
-    } catch (err) {
-      console.error("Lỗi thêm ghi chú:", err);
-      message.error("Không thể thêm ghi chú.");
-    }
+      })
+      .finally(() => handleCancel(), setSaving(false));
   };
 
   return (
@@ -206,6 +186,8 @@ const AddNote = ({ children, className, callback }) => {
         onCancel={handleCancel}
         okText="Lưu"
         cancelText="Hủy"
+        destroyOnHidden
+        confirmLoading={saving}
       >
         <Form
           form={form}
@@ -215,61 +197,56 @@ const AddNote = ({ children, className, callback }) => {
           labelAlign="left"
           colon={false}
           style={{ maxWidth: 560 }}
+          initialValues={{
+            date: dayjs(),
+            category: "in",
+            money: null,
+            quantity: undefined,
+            unitPrice: undefined,
+            note: undefined,
+            userPhone: undefined,
+          }}
         >
-          {/* Người mới? */}
-          <Form.Item name="isNewUser" valuePropName="checked" label="Người mới">
-            <Checkbox>Thêm người mới</Checkbox>
-          </Form.Item>
-
-          {/* Họ tên (Select hoặc Input) */}
-          <Form.Item
-            noStyle
-            shouldUpdate={(p, c) => p.isNewUser !== c.isNewUser}
-          >
-            {({ getFieldValue }) =>
-              getFieldValue("isNewUser") ? (
-                <Form.Item
-                  label="Họ tên (mới)"
-                  name="newName"
-                  rules={[{ required: true, message: "Vui lòng nhập SĐT" }]}
-                >
-                  <Input />
-                </Form.Item>
-              ) : (
-                <Form.Item label="Họ tên" name="userName">
-                  <Select
-                    showSearch
-                    placeholder="Chọn họ tên"
-                    options={nameSelect}
-                    optionFilterProp="label"
-                    onChange={handleUserChange}
-                  />
-                </Form.Item>
-              )
-            }
-          </Form.Item>
-
-          {/* SĐT */}
-          <Form.Item
-            noStyle
-            shouldUpdate={(p, c) => p.isNewUser !== c.isNewUser}
-          >
-            {({ getFieldValue }) => {
-              const isNew = getFieldValue("isNewUser");
-              return (
-                <Form.Item
-                  label={isNew ? "SĐT (mới)" : "SĐT"}
-                  name={isNew ? "newPhone" : "userPhone"}
-                  rules={
-                    isNew
-                      ? [{ required: true, message: "Vui lòng nhập SĐT" }]
-                      : []
+          <Form.Item label="Họ tên">
+            <div className="flex items-center gap-2">
+              <Form.Item
+                name="userName"
+                noStyle
+                rules={[
+                  { required: true, message: "Vui lòng chọn khách hàng" },
+                ]}
+              >
+                <Select
+                  className="flex-1"
+                  showSearch
+                  placeholder="Chọn họ tên"
+                  options={nameSelect} // value = id, label = hoten
+                  optionFilterProp="label"
+                  popupMatchSelectWidth={false}
+                  listHeight={256}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
+                  onChange={handleUserChange}
+                />
+              </Form.Item>
+
+              <ClientManager>
+                <button
+                  type="button"
+                  className="flex items-center justify-center w-8 h-8 border border-[#d9d9d9] rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
+                  aria-label="Thêm khách hàng"
                 >
-                  <Input disabled={!isNew} />
-                </Form.Item>
-              );
-            }}
+                  <AiOutlinePlus size={18} />
+                </button>
+              </ClientManager>
+            </div>
+          </Form.Item>
+
+          <Form.Item label="SĐT" name="userPhone">
+            <Input disabled />
           </Form.Item>
 
           <Form.Item
@@ -280,13 +257,31 @@ const AddNote = ({ children, className, callback }) => {
             <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
           </Form.Item>
 
-          <Form.Item label="Nhóm" name="group">
-            <Select options={groupSelect} optionFilterProp="label" />
+          <Form.Item label="Nhóm">
+            <div className="flex items-center gap-2">
+              <Form.Item
+                name="group"
+                noStyle
+                rules={[{ required: true, message: "Vui lòng chọn nhóm" }]}
+              >
+                <Select options={groupSelect} optionFilterProp="label" />
+              </Form.Item>
+
+              <CategoryManager>
+                <button
+                  type="button"
+                  className="flex items-center justify-center w-8 h-8 border border-[#d9d9d9] rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
+                  aria-label="Thêm nhóm"
+                >
+                  <AiOutlinePlus size={18} />
+                </button>
+              </CategoryManager>
+            </div>
           </Form.Item>
 
           <Form.Item
             label="Loại hình"
-            name="  "
+            name="category"
             rules={[{ required: true, message: "Vui lòng chọn loại hình" }]}
           >
             <Select
@@ -320,49 +315,44 @@ const AddNote = ({ children, className, callback }) => {
           </div>
 
           {expandCalc && (
-            <>
-              {/* Số lượng × Đơn giá cùng 1 dòng, canh wrapper */}
-              <Form.Item colon={false} label=" ">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <Form.Item
-                      name="quantity"
-                      noStyle
-                      rules={[{ required: true, message: "Nhập số lượng" }]}
-                    >
-                      <InputNumber
-                        className="w-full"
-                        min={0}
-                        placeholder="Số lượng"
-                        formatter={(v) =>
-                          `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                      />
-                    </Form.Item>
-                  </div>
+            <Form.Item colon={false}>
+              <div className="flex justify-end items-center gap-2 max-sm:items-stretch">
+                <Form.Item
+                  name="quantity"
+                  noStyle
+                  rules={[{ required: true, message: "Nhập số lượng" }]}
+                >
+                  <InputNumber
+                    className="w-[140px] max-sm:w-full"
+                    min={0}
+                    placeholder="Số lượng"
+                    formatter={(v) =>
+                      `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    }
+                  />
+                </Form.Item>
 
-                  <span className="select-none text-base font-medium">×</span>
+                <span className="select-none text-base font-medium shrink-0">
+                  ×
+                </span>
 
-                  <div className="flex-1">
-                    <Form.Item
-                      name="unitPrice"
-                      noStyle
-                      rules={[{ required: true, message: "Nhập đơn giá" }]}
-                    >
-                      <InputNumber
-                        className="w-full"
-                        min={0}
-                        placeholder="Đơn giá"
-                        formatter={(v) =>
-                          `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        parser={(v) => v?.replace(/,/g, "")}
-                      />
-                    </Form.Item>
-                  </div>
-                </div>
-              </Form.Item>
-            </>
+                <Form.Item
+                  name="unitPrice"
+                  noStyle
+                  rules={[{ required: true, message: "Nhập đơn giá" }]}
+                >
+                  <InputNumber
+                    className="w-[180px] max-sm:w-full"
+                    min={0}
+                    placeholder="Đơn giá"
+                    formatter={(v) =>
+                      `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    }
+                    parser={(v) => v?.replace(/,/g, "")}
+                  />
+                </Form.Item>
+              </div>
+            </Form.Item>
           )}
 
           <div className="flex">

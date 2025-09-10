@@ -1,5 +1,4 @@
-// src/components/CategoryManager.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button, Input, Modal, message, Spin, Empty, Popconfirm } from "antd";
 import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import { FaRegEdit } from "react-icons/fa";
@@ -11,53 +10,53 @@ const normalize = (s) => (s ?? "").toString().trim();
 
 const ClientManager = ({
   baseUrl = "/khachhang/",
-  onSave,
   children,
   className = "",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [client, setClient] = useState([]);
 
   const [adding, setAdding] = useState(false);
-  const [inputVal, setInputVal] = useState("");
+  const [newHoten, setNewHoten] = useState("");
+  const [newPhone, setNewPhone] = useState("");
 
   const [editingId, setEditingId] = useState(null);
-  const [editVal, setEditVal] = useState("");
+  const [editHoten, setEditHoten] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const { user, setUser } = useUser();
 
-  const exists = (label, exceptId = null) => {
-    const key = normalize(label).toLowerCase();
-    return client.some(
-      (c) => c.id !== exceptId && normalize(c.hoten).toLowerCase() === key
+  const list = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+
+  const exists = (hoten, phone, exceptId = null) => {
+    const keyName = normalize(hoten).toLowerCase();
+    const keyPhone = normalize(phone);
+    return user?.danhsachKH.some(
+      (c) =>
+        c.id !== exceptId &&
+        normalize(c.hoten).toLowerCase() === keyName &&
+        normalize(c.sodienthoai) === keyPhone
     );
   };
 
-  // tải từ API khi mở modal
-  useEffect(() => {
-    if (!isOpen) return;
-    const list = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
-    setClient(list);
-  }, [isOpen, user]);
   // thêm
   const handleAddConfirm = () => {
-    const v = normalize(inputVal);
-    if (!v) return message.warning("Nhập tên trước đã.");
-    if (exists(v)) return message.warning("Khách hàng đã tồn tại.");
+    const hoten = normalize(newHoten);
+    const phone = normalize(newPhone);
+    if (!hoten) return message.warning("Nhập họ tên.");
+    if (!phone) return message.warning("Nhập số điện thoại.");
+    if (exists(hoten, phone)) return message.warning("Khách hàng đã tồn tại.");
 
     setLoading(true);
     api
-      .post(baseUrl, { type: v, description: null }, user?.token)
+      .post(baseUrl, { hoten, sodienthoai: phone }, user?.token)
       .then((created) => {
-        if (!created?.id) {
-          // fallback: re-fetch để chắc dữ liệu
-          return api.get(baseUrl, user?.token).then((list) => {
-            setClient(Array.isArray(list) ? list : []);
-          });
-        }
-        setClient((prev) => [...prev, created]);
         message.success("Đã thêm.");
-        setInputVal("");
+        setUser((old) => ({
+          ...old,
+          danhsachKH: [...(old?.danhsachKH || []), created],
+        }));
+        setNewHoten("");
+        setNewPhone("");
         setAdding(false);
       })
       .catch((err) => {
@@ -74,7 +73,11 @@ const ClientManager = ({
     api
       .delete(`${baseUrl}${item.id}/`, user?.token)
       .then(() => {
-        setClient((prev) => prev.filter((x) => x.id !== item.id));
+        setUser((old) => ({
+          ...old,
+          danhsachKH: old?.danhsachKH.filter((x) => x.id !== item.id),
+        }));
+
         message.success("Đã xoá.");
       })
       .catch((err) => {
@@ -86,22 +89,26 @@ const ClientManager = ({
 
   // sửa
   const handleEditConfirm = () => {
-    const v = normalize(editVal);
-    if (!v) return message.warning("Nhập tên trước đã.");
-    if (exists(v, editingId)) return message.warning("Đã tồn tại.");
+    const hoten = normalize(editHoten);
+    const phone = normalize(editPhone);
+    if (!hoten) return message.warning("Nhập họ tên.");
+    if (!phone) return message.warning("Nhập số điện thoại.");
+    if (exists(hoten, phone, editingId)) return message.warning("Đã tồn tại.");
     if (!user?.token) return message.error("Thiếu token.");
 
     setLoading(true);
     api
-      .patch(`${baseUrl}${editingId}/`, { type: v }, user?.token)
+      .patch(
+        `${baseUrl}${editingId}/`,
+        { hoten, sodienthoai: phone },
+        user?.token
+      )
       .then((res) => {
-        if (!res?.id) {
-          // fallback: re-fetch
-          return api.get(baseUrl, user?.token).then((list) => {
-            setClient(Array.isArray(list) ? list : []);
-          });
-        }
-        setClient((prev) => prev.map((c) => (c.id === editingId ? res : c)));
+        setUser((old) => ({
+          ...old,
+          danhsachKH: old?.danhsachKH.map((r) => (r.id === res.id ? res : r)),
+        }));
+
         message.success("Đã sửa.");
       })
       .catch((err) => {
@@ -110,16 +117,10 @@ const ClientManager = ({
       })
       .finally(() => {
         setEditingId(null);
-        setEditVal("");
+        setEditHoten("");
+        setEditPhone("");
         setLoading(false);
       });
-  };
-
-  // save
-  const handleSave = () => {
-    onSave?.(client);
-    message.success("Đã lưu danh sách.");
-    setIsOpen(false);
   };
 
   return (
@@ -129,73 +130,67 @@ const ClientManager = ({
       </div>
 
       <Modal
-        className="!max-w-[420px]"
+        className="!max-w-[350px]"
         title="Danh sách khách hàng"
         open={isOpen}
         onCancel={() => setIsOpen(false)}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => setIsOpen(false)}
-            disabled={loading}
-          >
-            Hủy
-          </Button>,
-          <Button
-            key="save"
-            type="primary"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            Lưu
-          </Button>,
-        ]}
+        footer={[]}
       >
         <Spin spinning={loading}>
           <div className="flex flex-col gap-2">
-            {client.length === 0 && !adding ? (
+            {list.length === 0 && !adding ? (
               <Empty description="Chưa có" />
             ) : null}
 
-            {client.map((item) => (
+            {list.map((item) => (
               <div
                 key={item.id}
                 className="min-h-11 px-3 py-2 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 shadow-sm"
               >
                 {editingId === item.id ? (
-                  <div className="flex flex-1 items-center gap-2">
+                  <div className="flex flex-1 flex-col gap-2">
                     <Input
                       autoFocus
-                      value={editVal}
-                      onChange={(e) => setEditVal(e.target.value)}
+                      placeholder="Họ tên"
+                      value={editHoten}
+                      onChange={(e) => setEditHoten(e.target.value)}
+                      disabled={loading}
+                    />
+                    <Input
+                      placeholder="Số điện thoại"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
                       onPressEnter={handleEditConfirm}
                       disabled={loading}
                     />
-                    <Button
-                      size="small"
-                      type="primary"
-                      onClick={handleEditConfirm}
-                      loading={loading}
-                    >
-                      OK
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setEditingId(null);
-                        setEditVal("");
-                      }}
-                      disabled={loading}
-                    >
-                      Hủy
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="small"
+                        type="primary"
+                        onClick={handleEditConfirm}
+                        loading={loading}
+                      >
+                        OK
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          setEditingId(null);
+                          setEditHoten("");
+                          setEditPhone("");
+                        }}
+                        disabled={loading}
+                      >
+                        Hủy
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <>
                     <div className="text-sm text-gray-800">
                       <div>{item.hoten}</div>
                       <div className="pl-3">
-                        <FieldPhone data={item.sodienthoai}></FieldPhone>
+                        <FieldPhone data={item.sodienthoai} />
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -203,7 +198,8 @@ const ClientManager = ({
                         type="button"
                         onClick={() => {
                           setEditingId(item.id);
-                          setEditVal(item.hoten);
+                          setEditHoten(item.hoten);
+                          setEditPhone(item.sodienthoai);
                         }}
                         className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-gray-100 active:scale-95 transition"
                         disabled={loading}
@@ -243,32 +239,44 @@ const ClientManager = ({
                 <span>Thêm khách hàng</span>
               </button>
             ) : (
-              <div className="flex items-center gap-2">
-                <Input
-                  autoFocus
-                  placeholder="Nhập tên khách hàng..."
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  onPressEnter={handleAddConfirm}
-                  className="h-11"
-                  disabled={loading}
-                />
-                <Button
-                  onClick={() => {
-                    setAdding(false);
-                    setInputVal("");
-                  }}
-                  disabled={loading}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={handleAddConfirm}
-                  loading={loading}
-                >
-                  Thêm
-                </Button>
+              <div className="items-center">
+                <div className="flex flex-col gap-2">
+                  <Input
+                    autoFocus
+                    placeholder="Họ tên"
+                    value={newHoten}
+                    onChange={(e) => setNewHoten(e.target.value)}
+                    className="h-11"
+                    disabled={loading}
+                  />
+                  <Input
+                    placeholder="Số điện thoại"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    onPressEnter={handleAddConfirm}
+                    className="h-11"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    onClick={() => {
+                      setAdding(false);
+                      setNewHoten("");
+                      setNewPhone("");
+                    }}
+                    disabled={loading}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={handleAddConfirm}
+                    loading={loading}
+                  >
+                    Thêm
+                  </Button>
+                </div>
               </div>
             )}
           </div>
