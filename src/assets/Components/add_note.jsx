@@ -13,8 +13,9 @@ import dayjs from "dayjs";
 import api from "./api";
 import { useUser } from "../../stores/userContext";
 import ClientManager from "./client";
-import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlinePlus, AiOutlineUserAdd } from "react-icons/ai";
 import CategoryManager from "./Category";
+import { MdOutlinePlaylistAdd } from "react-icons/md";
 
 const AddNote = ({ children, className }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -236,10 +237,10 @@ const AddNote = ({ children, className }) => {
               <ClientManager>
                 <button
                   type="button"
-                  className="flex items-center justify-center w-8 h-8 border border-[#d9d9d9] rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
                   aria-label="Thêm khách hàng"
                 >
-                  <AiOutlinePlus size={18} />
+                  <AiOutlineUserAdd className="text-[cadetblue]" size={23} />
                 </button>
               </ClientManager>
             </div>
@@ -270,10 +271,13 @@ const AddNote = ({ children, className }) => {
               <CategoryManager>
                 <button
                   type="button"
-                  className="flex items-center justify-center w-8 h-8 border border-[#d9d9d9] rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
                   aria-label="Thêm nhóm"
                 >
-                  <AiOutlinePlus size={18} />
+                  <MdOutlinePlaylistAdd
+                    className="text-[cadetblue]"
+                    size={23}
+                  />
                 </button>
               </CategoryManager>
             </div>
