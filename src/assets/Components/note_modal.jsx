@@ -58,6 +58,7 @@ const NoteModal = ({
       setSaving(true);
       const values = await form.validateFields();
       const payload = {
+        tenghichu: "test",
         khachhang: values.userName ? String(values.userName) : null,
         thoigian: values.date
           ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
@@ -73,16 +74,15 @@ const NoteModal = ({
       if (mode === "add") {
         res = await api.post("/notes/", payload, user?.token);
         setUser((old) => ({
-          ...old,
-          danhsachNote: [...(old?.danhsachNote || []), res],
+          danhsachNote: [...(old?.danhsachNote || []), res, ...old],
         }));
         message.success("Thêm ghi chú thành công");
       } else {
         res = await api.patch(`/notes/${data.id}/`, payload, user?.token);
         setUser((old) => ({
-          ...old,
-          danhsachNote: (old?.danhsachNote || []).map((n) =>
-            n.id === res.id ? res : n
+          danhsachNote: (old?.danhsachNote || []).map(
+            (n) => (n.id === res.id ? res : n),
+            ...old
           ),
         }));
         message.success("Cập nhật thành công");

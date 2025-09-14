@@ -67,7 +67,7 @@ const Home = () => {
             to="/overview"
             className={({ isActive }) =>
               `menuitem px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
               }`
             }
           >
@@ -77,7 +77,7 @@ const Home = () => {
             to="/detail"
             className={({ isActive }) =>
               `menuitem px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
               }`
             }
           >
@@ -87,7 +87,7 @@ const Home = () => {
             to="/info"
             className={({ isActive }) =>
               `px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 text-white" : "hover:bg-gray-200"
+                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
               }`
             }
           >

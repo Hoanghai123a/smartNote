@@ -101,6 +101,10 @@ input {
     transform: translateY(0);
   }
 }
+a {
+  color: inherit !important; /* dùng màu kế thừa từ cha */
+  transition: none !important; /* tắt hiệu ứng */
+}
 
 .menuitem {
 }

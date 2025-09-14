@@ -25,11 +25,6 @@ const Detailcard = ({ className, data }) => {
     return d.isValid() ? d.format("DD-MM-YYYY") : "";
   }, [data?.thoigian]);
 
-  const moneyStr = useMemo(() => {
-    const n = Number(data?.sotien ?? 0);
-    return Number.isFinite(n) ? n.toLocaleString("vi-VN") : "0";
-  }, [data?.sotien]);
-
   return (
     <div className={className}>
       <>
@@ -57,8 +52,6 @@ const Detailcard = ({ className, data }) => {
 
             <div className="flex-1">
               <div className="flex items-center">
-                {/* Nếu Fieldclass cần text, dùng group?.type; 
-                   nếu nó nhận object, để group như cũ */}
                 <Fieldclass data={group?.type ?? ""} />
               </div>
 
@@ -67,7 +60,7 @@ const Detailcard = ({ className, data }) => {
                   data?.phanloai === "in" ? " text-[green]" : " text-[red]"
                 }`}
               >
-                <FieldMoney data={moneyStr} />
+                <FieldMoney data={data.sotien} />
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { DatePicker, Select, Spin } from "antd";
+import { Select, Spin } from "antd";
 import dayjs from "dayjs";
 import { LuClipboardList } from "react-icons/lu";
 import { AiOutlinePlus } from "react-icons/ai";
@@ -9,6 +9,7 @@ import { useUser } from "../../stores/userContext";
 import { RiFilter3Line, RiArrowDownSLine } from "react-icons/ri";
 import NoteModal from "../../assets/Components/note_modal";
 import GetFieldFormID from "../../assets/Components/get_fied";
+import { DatePicker } from "antd-mobile";
 
 const normalizeVN = (s = "") =>
   s
@@ -32,41 +33,28 @@ const DetailList = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startTime, endTime] = dateRange;
   useEffect(() => {
-    //show mặc định
     const listNote = Array.isArray(user?.danhsachNote)
       ? user?.danhsachNote
       : [];
-    if (!showFilName && !showDateRange) {
-      setData(listNote);
-      return;
-    }
+    let fil = listNote;
 
-    //lọc ngày tháng
     if (showDateRange && startTime && endTime) {
-      const fil = listNote.filter((row) => {
+      const start = dayjs(startTime).startOf("day");
+      const end = dayjs(endTime).endOf("day");
+      fil = fil.filter((row) => {
         const t = dayjs(row.thoigian);
-        return (
-          !t.isBefore(dateRange[0].startOf("day")) &&
-          !t.isAfter(dateRange[1].endOf("day"))
-        );
+        return !t.isBefore(start) && !t.isAfter(end);
       });
-      setData(fil);
     }
-    //lọc tên
-    if (showFilName && nameKey(nameFilter)) {
-      const findName = listNote.find((row) => row.khachhang == nameFilter);
-      const fil = findName?.hoten
-        ? listNote.filter(
-            (row) => nameKey(row.hoten) == nameKey(findName.hoten)
-          )
-        : [];
-      if (!findName?.hoten) {
-        setData();
-        return;
-      }
 
-      setData(fil);
+    if (showFilName && nameFilter) {
+      const findName = listNote.find((row) => row.khachhang == nameFilter);
+      fil = findName?.hoten
+        ? fil.filter((row) => nameKey(row.hoten) === nameKey(findName.hoten))
+        : [];
     }
+
+    setData(fil);
   }, [
     user?.danhsachNote,
     startTime,
@@ -130,9 +118,9 @@ const DetailList = () => {
             >
               <span className="select-none">
                 {startTime && endTime
-                  ? `${startTime.format("YYYY-MM-DD")} → ${endTime.format(
-                      "YYYY-MM-DD"
-                    )}`
+                  ? `${dayjs(startTime).format("YYYY-MM-DD")} → ${dayjs(
+                      endTime
+                    ).format("YYYY-MM-DD")}`
                   : "Toàn thời gian"}
               </span>
               <RiArrowDownSLine className="text-neutral-500" size={16} />
@@ -157,34 +145,56 @@ const DetailList = () => {
           )}
 
           {showDateRange && (
-            <div className="flex mt-3 items-center min-w-[180px] gap-2 z-21 w-[500px]">
+            <div className="flex mt-3 items-center min-w-[180px] gap-2 z-21">
               <DatePicker
-                className="ml-[15px]"
-                allowClear
+                className="!border-[#e5e5e5]"
+                title="Ngày bắt đầu"
+                cancelText="Hủy"
+                confirmText="Xác nhận"
+                precision="day"
                 value={startTime}
-                onChange={(val) => {
+                onConfirm={(val) => {
                   const end =
-                    endTime && val && endTime.isBefore(val, "day")
+                    endTime && val && dayjs(endTime).isBefore(val, "day")
                       ? null
                       : endTime;
                   setDateRange([val, end]);
                 }}
-                format="YYYY-MM-DD"
-              />
-              <div>tới</div>
+              >
+                {(_, actions) => (
+                  <div
+                    className="px-3 py-2 border text-[#686d76] border-[#e5e5e5] rounded-lg"
+                    onClick={actions.open}
+                  >
+                    {startTime
+                      ? dayjs(startTime).format("YYYY-MM-DD")
+                      : "Chọn ngày bắt đầu"}
+                  </div>
+                )}
+              </DatePicker>
+
+              <span>tới</span>
+
               <DatePicker
-                disabled={!startTime}
-                className="ml-[15px]"
-                allowClear
+                title="Ngày kết thúc"
+                cancelText="Hủy"
+                confirmText="Xác nhận"
+                precision="day"
                 value={endTime}
-                disabledDate={(d) =>
-                  !startTime ? false : d && d.isBefore(startTime, "day")
-                }
-                onChange={(val) => {
-                  setDateRange([startTime, val]);
-                }}
-                format="YYYY-MM-DD"
-              />
+                min={startTime || undefined} // không cho chọn trước startTime
+                onConfirm={(val) => setDateRange([startTime, val])}
+              >
+                {(_, actions) => (
+                  <div
+                    className="px-3 py-2 border text-[#686d76] border-[#e5e5e5] rounded-lg"
+                    onClick={actions.open}
+                  >
+                    {endTime
+                      ? dayjs(endTime).format("YYYY-MM-DD")
+                      : "Chọn ngày kết thúc"}
+                  </div>
+                )}
+              </DatePicker>
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ import FieldNote from "./fields/note";
 import dayjs from "dayjs";
 import { useUser } from "../../stores/userContext";
 import GetFieldFormID from "./get_fied";
+import Fieldclass from "./fields/class";
 
 const Groupcard = ({ children, idKH, className }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -106,15 +107,34 @@ const Groupcard = ({ children, idKH, className }) => {
               className="rounded-lg p-1 border shadow-sm border-emerald-50"
             >
               <div className="flex gap-3">
-                <div className="text-neutral-500">#{stt + 1}</div>
-                <div className="flex gap-2 items-center">
+                <div className="max-w-[50px] text-neutral-500">#{stt + 1}</div>
+
+                <div className="w-[100px] items-center">
                   <FieldDate data={dayjs(row.thoigian).format("DD-MM-YYYY")} />
                 </div>
-                <div className="pl-4 flex items-center">
+
+                <div className="flex items-center">
+                  <Fieldclass
+                    data={
+                      <GetFieldFormID
+                        id={row.loai}
+                        findField="type"
+                        getForm={user?.danhsachGroup}
+                      />
+                    }
+                  />
+                </div>
+
+                <div
+                  className={`flex justify-end items-center ${
+                    row.phanloai == "in" ? "text-[green]" : "text-[red]"
+                  }`}
+                >
                   <FieldMoney data={row.sotien} />
                 </div>
               </div>
-              <div className="mt-1 ">
+
+              <div className="mt-1">
                 <FieldNote data={row.noidung} />
               </div>
             </div>
