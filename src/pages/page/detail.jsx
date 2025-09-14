@@ -1,23 +1,14 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  Button,
-  Modal,
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  Spin,
-  message,
-} from "antd";
-import { CloseOutlined } from "@ant-design/icons";
+import { DatePicker, Select, Spin } from "antd";
 import dayjs from "dayjs";
 import { LuClipboardList } from "react-icons/lu";
 import { AiOutlinePlus } from "react-icons/ai";
 import Detailcard from "../../assets/Components/detailcard";
-import Add_note from "../../assets/Components/add_note";
 import Groupcard from "../../assets/Components/group_card";
 import { useUser } from "../../stores/userContext";
 import { RiFilter3Line, RiArrowDownSLine } from "react-icons/ri";
+import NoteModal from "../../assets/Components/note_modal";
+import GetFieldFormID from "../../assets/Components/get_fied";
 
 const normalizeVN = (s = "") =>
   s
@@ -54,7 +45,10 @@ const DetailList = () => {
     if (showDateRange && startTime && endTime) {
       const fil = listNote.filter((row) => {
         const t = dayjs(row.thoigian);
-        return !t.isBefore(startTime) && !t.isAfter(endTime);
+        return (
+          !t.isBefore(dateRange[0].startOf("day")) &&
+          !t.isAfter(dateRange[1].endOf("day"))
+        );
       });
       setData(fil);
     }
@@ -97,18 +91,14 @@ const DetailList = () => {
     return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
   }, [user?.danhsachKH, nameKey]);
 
-  // Map id -> name để fallback so khớp tên khi note không có id khách
-  const idToName = useMemo(() => {
-    const m = new Map();
-    (userOptions || []).forEach((opt) => m.set(String(opt.value), opt.label));
-    return m;
-  }, [userOptions]);
-
   return (
     <div className="flex flex-col gap-4 md:flex-row h-full relative">
-      <Add_note className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg mr-[8px] absolute right-2 bottom-10">
+      <NoteModal
+        mode="add"
+        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg mr-[8px] absolute right-2 bottom-10"
+      >
         <AiOutlinePlus size={20} className="text-white" />
-      </Add_note>
+      </NoteModal>
 
       <div className="p-2 sticky top-0 bg-white z-10">
         <div className="flex items-center justify-between mb-2 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] rounded">
@@ -207,17 +197,33 @@ const DetailList = () => {
               <Spin />
             </div>
           ) : (
-            (data || []).map((item, index) => (
-              <Groupcard
-                key={item.id ?? index}
-                data={{ ...item, stt: index + 1 }}
-              >
-                <Detailcard
-                  data={{ ...item, stt: index + 1 }}
-                  className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
-                />
-              </Groupcard>
-            ))
+            (data || []).map((item, index) => {
+              return (
+                <Groupcard key={item.id ?? index} idKH={Number(item.khachhang)}>
+                  <Detailcard
+                    data={{
+                      ...item,
+                      stt: index + 1,
+                      hoten: (
+                        <GetFieldFormID
+                          id={item.khachhang}
+                          findField="hoten"
+                          getForm={user.danhsachKH}
+                        />
+                      ),
+                      sodienthoai: (
+                        <GetFieldFormID
+                          id={item.khachhang}
+                          findField="sodienthoai"
+                          getForm={user.danhsachKH}
+                        />
+                      ),
+                    }}
+                    className="border rounded-lg shadow-sm p-3 bg-white border-[#c0cad3]"
+                  />
+                </Groupcard>
+              );
+            })
           )}
         </div>
       </section>

@@ -1,16 +1,36 @@
 import { Button, Modal } from "antd";
-import React, { useState } from "react";
-import { FaDollarSign } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 import Payment from "./payment";
-import { Link } from "react-router-dom";
-import { AiOutlinePhone } from "react-icons/ai";
 import FieldMoney from "./fields/money";
 import FieldDate from "./fields/date";
 import FieldPhone from "./fields/phone";
 import FieldNote from "./fields/note";
+import dayjs from "dayjs";
+import { useUser } from "../../stores/userContext";
+import GetFieldFormID from "./get_fied";
 
-const Groupcard = ({ children, data, className }) => {
+const Groupcard = ({ children, idKH, className }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const { user } = useUser();
+  const [list, setList] = useState([]);
+  const [totalMoney, setTotalMoney] = useState(0);
+
+  useEffect(() => {
+    if (!isDetailModalOpen) return;
+    const notes = user?.danhsachNote?.filter((r) => r.khachhang == idKH) || [];
+    console.log("a", notes),
+      setTotalMoney(
+        notes.reduce(
+          (acc, n) =>
+            n.phanloai == "in"
+              ? acc + (Number(n.sotien) || 0)
+              : acc - (Number(n.sotien) || 0),
+          0
+        )
+      );
+    setList(notes);
+  }, [isDetailModalOpen, user?.danhsachNote, idKH]);
+
   const handleClick = (e) => {
     if (
       e.target.closest("a[href^='tel:']") ||
@@ -33,19 +53,32 @@ const Groupcard = ({ children, data, className }) => {
   return (
     <>
       <div onClick={handleClick}>{children}</div>
-
       <Modal
         className={`${className}`}
         title={
           <div className="flex flex-col text-left items-start border-b border-gray-400">
             <div className="flex items-center gap-1">
-              <span className="font-medium">{data.name}</span>
-              <span className="text-gray-500">(hiện tổng tiền)</span>
-              <FaDollarSign className="text-green-700" />
+              <GetFieldFormID
+                id={idKH}
+                getForm={user?.danhsachKH}
+                findField="hoten"
+                className="font-medium"
+              />
+              {totalMoney && (
+                <div className="text-gray-500">
+                  {"( " + totalMoney.toLocaleString("vi-VN") + "đ )"}
+                </div>
+              )}
             </div>
             <div className="flex items-center">
               <FieldPhone
-                data={data.phone}
+                data={
+                  <GetFieldFormID
+                    id={idKH}
+                    getForm={user?.danhsachKH}
+                    findField="sodienthoai"
+                  />
+                }
                 className="text-[12px] text-neutral-500"
               />
             </div>
@@ -67,21 +100,25 @@ const Groupcard = ({ children, data, className }) => {
         onCancel={() => setIsDetailModalOpen(false)}
       >
         <div className="flex flex-col gap-2">
-          {/* Card 1 */}
-          <div className="rounded-lg p-3 border shadow-sm bg-emerald-50 border-emerald-50">
-            <div className="flex items-center gap-4">
-              <div className="text-neutral-500">#{data.stt}</div>
-              <div className="flex flex-1 gap-2 items-center">
-                <FieldDate data={data.date} />
+          {list.map((row, stt) => (
+            <div
+              key={row.id}
+              className="rounded-lg p-1 border shadow-sm border-emerald-50"
+            >
+              <div className="flex gap-3">
+                <div className="text-neutral-500">#{stt + 1}</div>
+                <div className="flex gap-2 items-center">
+                  <FieldDate data={dayjs(row.thoigian).format("DD-MM-YYYY")} />
+                </div>
+                <div className="pl-4 flex items-center">
+                  <FieldMoney data={row.sotien} />
+                </div>
               </div>
-              <div className="flex items-center">
-                <FieldMoney data={data.money} />
+              <div className="mt-1 ">
+                <FieldNote data={row.noidung} />
               </div>
             </div>
-            <div className="mt-1">
-              <FieldNote data={data.note} />
-            </div>
-          </div>
+          ))}
         </div>
       </Modal>
     </>

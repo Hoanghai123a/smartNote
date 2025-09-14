@@ -4,10 +4,10 @@ import FieldMoney from "./fields/money";
 import Fieldclass from "./fields/class";
 import { FaRegEdit } from "react-icons/fa";
 import FieldNote from "./fields/note";
-import EditCardValue from "./edit_card";
 import dayjs from "dayjs";
 import { useUser } from "../../stores/userContext";
 import { useMemo } from "react";
+import NoteModal from "./note_modal";
 
 const Detailcard = ({ className, data }) => {
   const { user } = useUser();
@@ -39,12 +39,11 @@ const Detailcard = ({ className, data }) => {
           </span>
           <div className="flex gap-2">
             <span className="text-xs text-gray-400">{dateStr}</span>
-            <EditCardValue data={data}>
+            <NoteModal mode="edit" data={data} className="ant-modal">
               <FaRegEdit className="text-gray-400 " />
-            </EditCardValue>
+            </NoteModal>
           </div>
         </div>
-
         <div className="space-y-1 text-sm">
           <div className="flex w-full">
             <div className="flex-1">
