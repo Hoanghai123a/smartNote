@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DownOutlined } from "@ant-design/icons";
-import { Form, Input, InputNumber, DatePicker, Select } from "antd";
+import { Form, Input, InputNumber, Select } from "antd";
+import { DatePicker } from "antd-mobile"; // antd-mobile
 import dayjs from "dayjs";
 import CategoryManager from "./Category";
 import { MdOutlinePlaylistAdd } from "react-icons/md";
@@ -13,6 +14,9 @@ const STRIP_QTY_PRICE =
 const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
   const quantity = Form.useWatch("quantity", form);
   const unitPrice = Form.useWatch("unitPrice", form);
+  const currentId = Form.useWatch("userName", form);
+
+  const [openDate, setOpenDate] = useState(false);
 
   // đồng bộ money + note khi bật expandCalc
   useEffect(() => {
@@ -50,12 +54,18 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
   };
 
   // khi chọn người → auto phone
-  const handleUserChange = async (val) => {
-    const found = user?.danhsachKH?.find((u) => String(u.id) === String(val));
+  useEffect(() => {
+    if (!currentId) {
+      form.setFieldsValue({ userPhone: null });
+      return;
+    }
+    const found = user?.danhsachKH?.find(
+      (u) => String(u.id) === String(currentId)
+    );
     form.setFieldsValue({
-      userPhone: formatPhone(found?.sodienthoai) || undefined,
+      userPhone: found?.sodienthoai ? formatPhone(found.sodienthoai) : null,
     });
-  };
+  }, [form, user?.danhsachKH, currentId]);
 
   return (
     <Form
@@ -66,7 +76,7 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
       colon={false}
       style={{ maxWidth: 560 }}
       initialValues={{
-        date: dayjs(),
+        date: dayjs().toDate(),
         category: "in",
         money: null,
       }}
@@ -84,7 +94,6 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
                   .toLowerCase()
                   .includes(input.toLowerCase())
               }
-              onChange={handleUserChange}
             />
           </Form.Item>
           <ClientManager>
@@ -108,7 +117,31 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         name="date"
         rules={[{ required: true, message: "Chọn ngày" }]}
       >
-        <DatePicker showTime format="YYYY-MM-DD HH:mm" className="w-full" />
+        <>
+          {/* trigger để mở DatePicker */}
+          <Input
+            readOnly
+            value={
+              form.getFieldValue("date")
+                ? dayjs(form.getFieldValue("date")).format("YYYY-MM-DD")
+                : ""
+            }
+            placeholder="Chọn ngày"
+            onClick={() => setOpenDate(true)}
+          />
+          <DatePicker
+            title="Chọn ngày"
+            cancelText="Hủy"
+            confirmText="Xác nhận"
+            precision="day"
+            visible={openDate}
+            onClose={() => setOpenDate(false)}
+            onConfirm={(val) => {
+              form.setFieldsValue({ date: val });
+              setOpenDate(false);
+            }}
+          />
+        </>
       </Form.Item>
 
       <Form.Item label="Nhóm">
@@ -135,8 +168,8 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
       >
         <Select
           options={[
-            { label: "Thu", value: "in" },
-            { label: "Chi", value: "out" },
+            { label: "Cần thu (Cho nợ / Đã trả)", value: "in" },
+            { label: "Cần trả (Ghi nợ / Đã thu)", value: "out" },
           ]}
         />
       </Form.Item>
@@ -186,7 +219,14 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
       )}
 
       <Form.Item label="Số tiền" name="money">
-        <InputNumber min={0} disabled={expandCalc} />
+        <InputNumber
+          min={0}
+          disabled={expandCalc}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value) => value.replace(/,/g, "")}
+        />
       </Form.Item>
 
       <Form.Item label="Ghi chú" name="note">

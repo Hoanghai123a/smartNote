@@ -1,78 +1,60 @@
-import { Button, Modal } from "antd";
-import React, { cloneElement, useState } from "react";
-import Detailcard from "./detailcard";
-import { FaDollarSign } from "react-icons/fa";
+import { Modal, message } from "antd";
+import { useUser } from "../../stores/userContext";
+import api from "./api";
 
 const Payment = ({ children, id }) => {
-  console.log(id);
-  const maxMoney = 1000000;
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState("");
+  const { user, setUser } = useUser();
 
-  const handlePayment = () => {
-    setIsPaymentModalOpen(true);
-  };
-  const handleChange = (e) => {
-    let rawValue = e.target.value.replace(/\D/g, "");
+  const handleClick = () => {
+    Modal.confirm({
+      title: "Đã hoàn tất công nợ?",
+      okText: "OK",
+      cancelText: "Hủy",
+      async onOk() {
+        try {
+          // Lấy danh sách note
+          const updatedNotes =
+            user?.danhsachNote?.map((n) =>
+              String(n.khachhang) === String(id)
+                ? { ...n, trangthai: "hide" }
+                : n
+            ) || [];
 
-    let numValue = parseInt(rawValue || "0", 10);
+          // Gọi API để cập nhật backend (ví dụ PATCH hoặc POST hàng loạt)
+          const notesToUpdate = user?.danhsachNote?.filter(
+            (n) => String(n.khachhang) === String(id)
+          );
 
-    if (numValue > maxMoney) {
-      numValue = maxMoney;
-    }
+          if (notesToUpdate?.length) {
+            // push từng bản ghi hoặc viết 1 API batch
+            for (const note of notesToUpdate) {
+              await api.patch(
+                `/notes/${note.id}/`,
+                {
+                  ...note,
+                  trangthai: "done",
+                },
+                user?.token
+              );
+            }
+          }
 
-    const formatted = numValue.toLocaleString("vi-VN");
+          // Update local state
+          setUser((old) => ({
+            ...old,
+            danhsachNote: updatedNotes,
+          }));
 
-    setPaymentAmount(formatted);
-  };
-  return (
-    <>
-      {cloneElement(children, { onClick: handlePayment })}
-      <Modal
-        title="Thanh toán công nợ"
-        open={isPaymentModalOpen}
-        onCancel={() => setIsPaymentModalOpen(false)}
-        footer={
-          <div className="">
-            <Button //chính là số tiền tổng công nợ
-              type="primary"
-              onClick={() => {
-                setIsPaymentModalOpen(false);
-              }}
-            >
-              Toàn bộ
-            </Button>
-            <Button
-              type="primary"
-              className="!ml-[10px]"
-              onClick={() => {
-                setIsPaymentModalOpen(false);
-              }}
-            >
-              Xác nhận
-            </Button>
-          </div>
+          message.success("Đã hoàn tất công nợ");
+        } catch (err) {
+          console.error(err);
+          message.error("Có lỗi xảy ra khi cập nhật công nợ");
         }
-      >
-        <div style={{ padding: "20px 0" }}>
-          <input
-            type="text"
-            placeholder="Nhập số tiền"
-            value={paymentAmount}
-            onChange={handleChange}
-            min={0}
-            max={maxMoney} //chính là số tiền tổng công nợ
-            style={{
-              width: "100%",
-              padding: "8px",
-              border: "1px solid #d9d9d9",
-            }}
-          />
-          <div style={{ marginTop: "16px", display: "flex", gap: "8px" }}></div>
-        </div>
-      </Modal>
-    </>
-  );
+      },
+    });
+  };
+
+  return <div onClick={handleClick}>{children}</div>;
 };
 
 export default Payment;

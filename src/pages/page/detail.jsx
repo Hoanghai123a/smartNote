@@ -50,11 +50,17 @@ const DetailList = () => {
     if (showFilName && nameFilter) {
       const findName = listNote.find((row) => row.khachhang == nameFilter);
       fil = findName?.hoten
-        ? fil.filter((row) => nameKey(row.hoten) === nameKey(findName.hoten))
+        ? fil.filter(
+            (row) =>
+              nameKey(row.hoten) === nameKey(findName.hoten) &&
+              row.trangthai == "not"
+          )
         : [];
     }
-
-    setData(fil);
+    const sorted = [...fil].sort(
+      (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
+    );
+    setData(sorted);
   }, [
     user?.danhsachNote,
     startTime,

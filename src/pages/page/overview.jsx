@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { FaHandHoldingUsd, FaMoneyBillWave } from "react-icons/fa";
 import GroupCard from "../../assets/Components/group_card";
-import {
-  AiOutlineDollarCircle,
-  AiOutlinePhone,
-  AiOutlineUser,
-} from "react-icons/ai";
 import { useUser } from "../../stores/userContext";
 import FieldName from "../../assets/Components/fields/name";
 import FieldPhone from "../../assets/Components/fields/phone";
@@ -24,7 +18,9 @@ const Overview = () => {
   useEffect(() => {
     if (!user?.danhsachNote) return;
 
-    const notes = user.danhsachNote;
+    const notes = (user.danhsachNote || []).filter(
+      (row) => row.trangthai == "not"
+    );
 
     // Tổng công nợ
     const tong = notes.reduce(
@@ -48,30 +44,37 @@ const Overview = () => {
       .reduce((acc, n) => acc + (Number(n.sotien) || 0), 0);
     setTotalTra(tra);
 
-    // Top 5 phải thu
-    const topThu = notes
-      .filter((n) => n.phanloai === "in")
-      .sort((a, b) => Number(b.sotien) - Number(a.sotien))
-      .slice(0, 5)
-      .map((n) => ({
-        id: n.id,
-        name: n.hoten,
-        phone: n.sodienthoai,
-        money: Number(n.sotien),
-      }));
+    // Gom nhóm theo khách hàng
+    const khMap = {};
+    notes.forEach((n) => {
+      const id = n.khachhang;
+      if (!khMap[id]) {
+        khMap[id] = {
+          id,
+          name: n.hoten,
+          phone: n.sodienthoai,
+          money: 0,
+        };
+      }
+      // cộng dồn: in => cộng, out => trừ
+      khMap[id].money +=
+        n.phanloai === "in" ? Number(n.sotien) || 0 : -(Number(n.sotien) || 0);
+    });
+
+    const khArray = Object.values(khMap);
+
+    // Top 5 cần thu (số dương lớn nhất)
+    const topThu = khArray
+      .filter((k) => k.money > 0)
+      .sort((a, b) => b.money - a.money)
+      .slice(0, 5);
     setListThu(topThu);
 
-    // Top 5 phải trả
-    const topTra = notes
-      .filter((n) => n.phanloai === "out")
-      .sort((a, b) => Number(b.sotien) - Number(a.sotien))
-      .slice(0, 5)
-      .map((n) => ({
-        id: n.id,
-        name: n.hoten,
-        phone: n.sodienthoai,
-        money: Number(n.sotien),
-      }));
+    // Top 5 cần trả (số âm tuyệt đối lớn nhất)
+    const topTra = khArray
+      .filter((k) => k.money < 0)
+      .sort((a, b) => Math.abs(b.money) - Math.abs(a.money))
+      .slice(0, 5);
     setListTra(topTra);
   }, [user]);
 
@@ -130,7 +133,7 @@ const Overview = () => {
           </div>
           <div className="flex flex-col border border-gray-200 bg-[#fdfdfd] rounded-2xl">
             {listThu.map((row) => (
-              <GroupCard data={row} key={row.id}>
+              <GroupCard key={row.id} idKH={Number(row.id)}>
                 <div className="flex flex-1 rounded-lg text-center gap-2 p-2">
                   <div className="flex flex-1/3">
                     <FieldName data={row.name} />
@@ -153,7 +156,7 @@ const Overview = () => {
           </div>
           <div className="flex flex-col border border-gray-200 bg-[#fdfdfd] rounded-2xl">
             {listTra.map((row) => (
-              <GroupCard data={row} key={row.id}>
+              <GroupCard key={row.id} idKH={Number(row.id)}>
                 <div className="flex flex-1 rounded-lg p-2 text-center">
                   <div className="flex flex-1/3">
                     <FieldName data={row.name} />

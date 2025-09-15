@@ -34,7 +34,6 @@ const NoteModal = ({
         money: data.sotien ?? 0,
         note: data.noidung ?? "",
       });
-      console.log("data.khachhang:", data.khachhang);
       form.setFieldsValue({
         userName: data.khachhang ? String(data.khachhang) : undefined,
       });
@@ -68,21 +67,21 @@ const NoteModal = ({
         sotien: values.money ?? 0,
         noidung: values.note ?? "",
       };
-      console.log("Form values:", values);
 
       let res;
       if (mode === "add") {
         res = await api.post("/notes/", payload, user?.token);
         setUser((old) => ({
-          danhsachNote: [...(old?.danhsachNote || []), res, ...old],
+          ...old,
+          danhsachNote: [...(old?.danhsachNote || []), res],
         }));
         message.success("Thêm ghi chú thành công");
       } else {
         res = await api.patch(`/notes/${data.id}/`, payload, user?.token);
         setUser((old) => ({
-          danhsachNote: (old?.danhsachNote || []).map(
-            (n) => (n.id === res.id ? res : n),
-            ...old
+          ...old,
+          danhsachNote: (old?.danhsachNote || []).map((n) =>
+            n.id === res.id ? res : n
           ),
         }));
         message.success("Cập nhật thành công");

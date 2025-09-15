@@ -18,18 +18,24 @@ const Groupcard = ({ children, idKH, className }) => {
 
   useEffect(() => {
     if (!isDetailModalOpen) return;
-    const notes = user?.danhsachNote?.filter((r) => r.khachhang == idKH) || [];
-    console.log("a", notes),
-      setTotalMoney(
-        notes.reduce(
-          (acc, n) =>
-            n.phanloai == "in"
-              ? acc + (Number(n.sotien) || 0)
-              : acc - (Number(n.sotien) || 0),
-          0
-        )
-      );
-    setList(notes);
+    const notes =
+      user?.danhsachNote?.filter(
+        (r) => r.khachhang == idKH && r.trangthai == "not"
+      ) || [];
+
+    setTotalMoney(
+      notes.reduce(
+        (acc, n) =>
+          n.phanloai == "in"
+            ? acc + (Number(n.sotien) || 0)
+            : acc - (Number(n.sotien) || 0),
+        0
+      )
+    );
+    const sorted = notes.sort(
+      (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
+    );
+    setList(sorted);
   }, [isDetailModalOpen, user?.danhsachNote, idKH]);
 
   const handleClick = (e) => {
@@ -88,16 +94,17 @@ const Groupcard = ({ children, idKH, className }) => {
         open={isDetailModalOpen}
         styles={{
           body: {
-            maxHeight: "70vh",
+            maxHeight: "500px",
             overflowY: "auto",
             background: "#fff",
           },
         }}
         footer={
-          <Payment id={"1"}>
-            <Button type="primary">Thanh toán</Button>
+          <Payment id={idKH}>
+            <Button type="primary">Xóa toàn bộ</Button>
           </Payment>
         }
+        style={{ top: 20 }}
         onCancel={() => setIsDetailModalOpen(false)}
       >
         <div className="flex flex-col gap-2">
@@ -126,7 +133,7 @@ const Groupcard = ({ children, idKH, className }) => {
                 </div>
 
                 <div
-                  className={`flex justify-end items-center ${
+                  className={`flex ml-auto items-center ${
                     row.phanloai == "in" ? "text-[green]" : "text-[red]"
                   }`}
                 >
