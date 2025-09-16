@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { useUser } from "../../stores/userContext";
 import { useMemo } from "react";
 import NoteModal from "./note_modal";
+import { FaCircleCheck } from "react-icons/fa6";
 
 const Detailcard = ({ className, data }) => {
   const { user } = useUser();
@@ -29,11 +30,18 @@ const Detailcard = ({ className, data }) => {
     <div className={className}>
       <>
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-600">
+          <span className="text-sm flex items-center font-semibold text-gray-600">
             #{data?.stt ?? ""}
+            {data?.trangthai === "done" ? (
+              <div className="flex gap-1 ml-1 items-center text-[#004e81]">
+                <FaCircleCheck /> Đã xong
+              </div>
+            ) : (
+              ""
+            )}
           </span>
-          <div className="flex gap-2">
-            <span className="text-xs text-gray-400">{dateStr}</span>
+          <div className="flex gap-2 items-center text-[#999]">
+            {dateStr}
             <NoteModal mode="edit" data={data} className="ant-modal">
               <FaRegEdit className="text-gray-400 " />
             </NoteModal>
@@ -41,7 +49,7 @@ const Detailcard = ({ className, data }) => {
         </div>
         <div className="space-y-1 text-sm">
           <div className="flex w-full">
-            <div className="flex-1">
+            <div className="flex-1 flex-col gap-1 flex">
               <div className="flex items-center">
                 <FieldName data={data?.hoten ?? ""} />
               </div>
@@ -49,12 +57,10 @@ const Detailcard = ({ className, data }) => {
                 <FieldPhone data={data?.sodienthoai ?? ""} />
               </div>
             </div>
-
-            <div className="flex-1">
+            <div className="flex-1 gap-1 flex-col flex">
               <div className="flex items-center">
                 <Fieldclass data={group?.type ?? ""} />
               </div>
-
               <div
                 className={`flex items-center ${
                   data?.phanloai === "in" ? " text-[green]" : " text-[red]"
@@ -67,7 +73,7 @@ const Detailcard = ({ className, data }) => {
 
           <div className="flex items-start border-t border-gray-300 mt-[10px]">
             <div className="flex flex-col">
-              <FieldNote data={data?.noidung ?? ""} />
+              <FieldNote data={data?.noidung ?? "--"} />
             </div>
           </div>
         </div>

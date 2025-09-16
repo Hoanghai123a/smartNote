@@ -26,25 +26,27 @@ const Payment = ({ children, id }) => {
           );
 
           if (notesToUpdate?.length) {
-            // push từng bản ghi hoặc viết 1 API batch
-            for (const note of notesToUpdate) {
-              await api.patch(
-                `/notes/${note.id}/`,
-                {
-                  ...note,
-                  trangthai: "done",
-                },
-                user?.token
+            try {
+              const promises = notesToUpdate.map((note) =>
+                api.patch(
+                  `/notes/${note.id}/`,
+                  { ...note, trangthai: "done" },
+                  user?.token
+                )
               );
+              const results = await Promise.all(promises);
+              const updatedMap = new Map(results.map((res) => [res.id, res]));
+              setUser((old) => ({
+                ...old,
+                danhsachNote: old.danhsachNote.map((n) =>
+                  updatedMap.has(n.id) ? { ...n, ...updatedMap.get(n.id) } : n
+                ),
+              }));
+              console.log("✅ Notes đã update xong");
+            } catch (err) {
+              console.error("❌ Lỗi khi update notes:", err);
             }
           }
-
-          // Update local state
-          setUser((old) => ({
-            ...old,
-            danhsachNote: updatedNotes,
-          }));
-
           message.success("Đã hoàn tất công nợ");
         } catch (err) {
           console.error(err);
