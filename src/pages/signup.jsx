@@ -1,19 +1,72 @@
 import React, { useState } from "react";
 import { FaUser, FaLock, FaPhone, FaStore } from "react-icons/fa";
 import { DownOutlined } from "@ant-design/icons";
+import api from "../assets/Components/api";
+import { message } from "antd";
 
 const Signup_index = () => {
   const [expandStore, setExpandStore] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+
+  // các field bổ sung
+  const [fullname, setFullname] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [address, setaddress] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!username || !password) {
+      return message.warning("Vui lòng nhập tên đăng nhập và mật khẩu");
+    }
+    if (password !== confirm) {
+      return message.error("Mật khẩu nhập lại không khớp");
+    }
+
+    submitData();
+  };
+
+  const submitData = async () => {
+    setLoading(true);
+    const body = {
+      username,
+      password,
+      isStore: expandStore,
+    };
+    if (expandStore) {
+      body.thongtinthem = JSON.stringify({
+        loaitaikhoan: "cửa hàng",
+        fullname,
+        birthday,
+        storeName,
+        address,
+        phone,
+      });
+    }
+
+    api
+      .post("/user/", body)
+      .then(() => {
+        message.success("Đăng ký thành công!");
+      })
+      .catch(() => {
+        message.error("Đăng ký thất bại");
+      })
+      .finally(setLoading(false));
+  };
 
   return (
     <div className="min-h-[100vh] bg-white overflow-y-auto">
       <div className="flex flex-col items-center gap-1 fadeInTop">
-        {/* Title */}
         <div className="flex font-[500] text-[28px] pb-1 mt-6 justify-center">
           Đăng ký tài khoản
         </div>
 
-        {/* Form */}
         <div className="flex flex-col gap-3 py-8 max-w-[80vw] w-[80vw]">
           {/* Username */}
           <div className="flex items-center gap-1 font-[500]">
@@ -23,6 +76,8 @@ const Signup_index = () => {
             <FaUser className="absolute left-4 text-[#c4c4c4]" />
             <input
               type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
               placeholder="Nhập tên đăng nhập"
             />
@@ -36,6 +91,8 @@ const Signup_index = () => {
             <FaLock className="absolute left-4 text-[#c4c4c4]" />
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
               placeholder="Nhập mật khẩu"
             />
@@ -49,6 +106,8 @@ const Signup_index = () => {
             <FaLock className="absolute left-4 text-[#c4c4c4]" />
             <input
               type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
               className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
               placeholder="Nhập lại mật khẩu"
             />
@@ -69,25 +128,27 @@ const Signup_index = () => {
 
           {expandStore && (
             <div className="flex flex-col gap-2 mt-2">
-              {/* Full name */}
               <div className="flex items-center gap-1 font-[500] mt-2">
                 Tên đầy đủ
               </div>
               <input
                 type="text"
+                value={fullname}
+                onChange={(e) => setFullname(e.target.value)}
                 className="border-1 w-full !border-[#dbdbdb] rounded-[8px] !py-3 px-3 outline-none shadow"
                 placeholder="Nhập tên đầy đủ của bạn"
               />
 
-              {/* Ngày sinh */}
               <div className="flex items-center gap-1 font-[500] mt-2">
                 Ngày tháng năm sinh
               </div>
               <input
                 type="date"
+                value={birthday}
+                onChange={(e) => setBirthday(e.target.value)}
                 className="border-1 w-full !border-[#dbdbdb] rounded-[8px] !py-3 px-3 outline-none shadow"
               />
-              {/* Store Name */}
+
               <div className="flex items-center gap-1 font-[500]">
                 Tên cửa hàng
               </div>
@@ -95,20 +156,22 @@ const Signup_index = () => {
                 <FaStore className="absolute left-4 text-[#c4c4c4]" />
                 <input
                   type="text"
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
                   className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
                   placeholder="Tên cửa hàng của bạn"
                 />
               </div>
 
-              {/* Location */}
               <div className="flex items-center gap-1 font-[500]">Địa điểm</div>
               <input
                 type="text"
+                value={address}
+                onChange={(e) => setaddress(e.target.value)}
                 className="border-1 w-full !border-[#dbdbdb] rounded-[8px] !py-3 px-3 outline-none shadow"
                 placeholder="Địa chỉ cửa hàng"
               />
 
-              {/* Phone */}
               <div className="flex items-center gap-1 font-[500]">
                 Số điện thoại
               </div>
@@ -116,6 +179,8 @@ const Signup_index = () => {
                 <FaPhone className="absolute left-4 text-[#c4c4c4]" />
                 <input
                   type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
                   placeholder="Số điện thoại liên hệ"
                 />
@@ -123,8 +188,10 @@ const Signup_index = () => {
             </div>
           )}
 
-          {/* Submit */}
-          <button className="bg-[#0180f6] text-white font-[500] rounded-[8px] py-4 mt-5 shadow hover:bg-[#026cd1] transition">
+          <button
+            onClick={handleSubmit}
+            className="bg-[#0180f6] text-white font-[500] rounded-[8px] py-4 mt-5 shadow hover:bg-[#026cd1] transition"
+          >
             Đăng ký
           </button>
 

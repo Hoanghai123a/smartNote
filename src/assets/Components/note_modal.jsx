@@ -37,6 +37,9 @@ const NoteModal = ({
       form.setFieldsValue({
         userName: data.khachhang ? String(data.khachhang) : undefined,
       });
+    } else {
+      form.resetFields();
+      setExpandCalc(false);
     }
     setIsOpen(true);
   };

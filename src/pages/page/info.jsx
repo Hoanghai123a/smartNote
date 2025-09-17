@@ -83,7 +83,7 @@ const Info = () => {
         <div>{user?.username ? user?.username : "Hi Tech"}</div>
 
         <div className="w-15  mx-2">SĐT: </div>
-        <div>{user?.userphone ? user?.userphone : "0123-456-789"}</div>
+        <div>{user?.userphone ? user?.phone : "0123-456-789"}</div>
 
         <div className="w-15  mx-2">Địa chỉ: </div>
         <div>

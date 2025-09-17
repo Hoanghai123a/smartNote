@@ -18,10 +18,7 @@ const Groupcard = ({ children, idKH, className }) => {
 
   useEffect(() => {
     if (!isDetailModalOpen) return;
-    const notes =
-      user?.danhsachNote?.filter(
-        (r) => r.khachhang == idKH && r.trangthai == "not"
-      ) || [];
+    const notes = user?.danhsachNote?.filter((r) => r.khachhang == idKH) || [];
 
     setTotalMoney(
       notes.reduce(

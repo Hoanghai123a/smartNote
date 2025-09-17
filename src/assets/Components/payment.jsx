@@ -12,14 +12,6 @@ const Payment = ({ children, id }) => {
       cancelText: "Hủy",
       async onOk() {
         try {
-          // Lấy danh sách note
-          const updatedNotes =
-            user?.danhsachNote?.map((n) =>
-              String(n.khachhang) === String(id)
-                ? { ...n, trangthai: "hide" }
-                : n
-            ) || [];
-
           // Gọi API để cập nhật backend (ví dụ PATCH hoặc POST hàng loạt)
           const notesToUpdate = user?.danhsachNote?.filter(
             (n) => String(n.khachhang) === String(id)

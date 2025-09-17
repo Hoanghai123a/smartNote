@@ -36,8 +36,7 @@ const DetailList = () => {
     const listNote = Array.isArray(user?.danhsachNote)
       ? user?.danhsachNote
       : [];
-    let fil = listNote;
-
+    let fil = listNote.filter((row) => row.trangthai === "not");
     if (showDateRange && startTime && endTime) {
       const start = dayjs(startTime).startOf("day");
       const end = dayjs(endTime).endOf("day");
@@ -50,14 +49,10 @@ const DetailList = () => {
     if (showFilName && nameFilter) {
       const findName = listNote.find((row) => row.khachhang == nameFilter);
       fil = findName?.hoten
-        ? fil.filter(
-            (row) =>
-              nameKey(row.hoten) === nameKey(findName.hoten) &&
-              row.trangthai == "not"
-          )
+        ? fil.filter((row) => nameKey(row.hoten) === nameKey(findName.hoten))
         : [];
     }
-    const sorted = [...fil].sort(
+    const sorted = fil.sort(
       (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
     );
     setData(sorted);
