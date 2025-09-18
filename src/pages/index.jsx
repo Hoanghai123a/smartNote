@@ -5,7 +5,7 @@ import "antd/dist/reset.css";
 import { FaUserLarge } from "react-icons/fa6";
 import { IoInformationCircle, IoList } from "react-icons/io5";
 import api from "../assets/Components/api";
-import { useUser } from "../stores/userContext";
+import { useUser } from "../stores/UserContext";
 
 const Home = () => {
   const nav = useNavigate();
@@ -50,13 +50,11 @@ const Home = () => {
     checkApi();
   }, []);
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100%]">
       <div className="flex-1 bg-gray-100 overflow-hidden">
         <Outlet />
       </div>
-
-      {/* Menu */}
-      <div className="shadow-md border-t bg-white p-3">
+      <div className="shadow-md bottom-0 absolute w-full border-t bg-white p-3">
         <div className="flex justify-around items-center gap-6">
           <NavLink
             to="/overview"

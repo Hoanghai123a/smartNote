@@ -75,7 +75,7 @@ const Signup_index = () => {
   };
 
   return (
-    <div className="bg-white overflow-y-auto">
+    <div className="bg-white overflow-y-auto h-[100%]">
       <div className="flex flex-col items-center gap-1 fadeInTop">
         <div className="flex font-[500] text-[28px] pb-1 mt-6 justify-center">
           Đăng ký tài khoản

@@ -38,7 +38,7 @@ const Login_index = () => {
       });
   };
   return (
-    <div className="bg-white overflow-y-auto">
+    <div className="bg-white overflow-y-auto h-[100%]">
       <div className="flex flex-col items-center gap-1 fadeInTop">
         <div className="flex w-[90vw] relative justify-between mb-3 items-center p-3 shadow rounded-[10px] gap-1 text-[#0180f6] font-[500]">
           <CiStickyNote size={50} />

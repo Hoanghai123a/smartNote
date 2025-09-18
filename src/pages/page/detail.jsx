@@ -5,11 +5,11 @@ import { LuClipboardList } from "react-icons/lu";
 import { AiOutlinePlus } from "react-icons/ai";
 import Detailcard from "../../assets/Components/detailcard";
 import Groupcard from "../../assets/Components/group_card";
-import { useUser } from "../../stores/userContext";
 import { RiFilter3Line, RiArrowDownSLine } from "react-icons/ri";
 import NoteModal from "../../assets/Components/note_modal";
 import GetFieldFormID from "../../assets/Components/get_fied";
 import { DatePicker } from "antd-mobile";
+import { useUser } from "../../stores/UserContext";
 
 const normalizeVN = (s = "") =>
   s
@@ -81,10 +81,11 @@ const DetailList = () => {
   }, [user?.danhsachKH, nameKey]);
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row h-full relative">
+    <div className="flex flex-col h-[100%] gap-4 md:flex-row relative">
       <NoteModal
         mode="add"
-        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] hover:bg-blue-600 shadow-lg mr-[8px] absolute right-2 bottom-10"
+        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] 
+        hover:bg-blue-600 shadow-lg mr-[8px] absolute right-4 bottom-20"
       >
         <AiOutlinePlus size={20} className="text-white" />
       </NoteModal>

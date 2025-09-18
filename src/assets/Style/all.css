@@ -24,6 +24,7 @@ body {
   height: 100%;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  background-color: #f3f4f6;
 }
 input {
   border: 1px solid #999;
@@ -40,6 +41,7 @@ input {
 }
 #root {
   overflow-y: auto;
+  height: 100%;
   -webkit-overflow-scrolling: touch; /* quan trọng cho iOS */
 }
 .fadeInTop {
