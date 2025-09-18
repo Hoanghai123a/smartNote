@@ -1,126 +1,77 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Button, message } from "antd";
-import { Image } from "antd";
-import cuphong from "../../assets/img/cuphong.jpg";
-import { HiOutlineKey } from "react-icons/hi";
-import { VscSymbolClass } from "react-icons/vsc";
-import { FaCamera } from "react-icons/fa";
-import ChangePass from "../../assets/Components/change_pass";
-import { MdLogout } from "react-icons/md";
-import { useUser } from "../../stores/userContext";
-import ClientManager from "../../assets/Components/client.jsx";
-import CategoryManager from "../../assets/Components/Category.jsx";
+import React from "react";
 
-const Info = () => {
-  const { user, setUser } = useUser();
-  const nav = useNavigate();
-  const { id_nguoidung } = useParams();
+// Bạn có thể chỉnh sửa thông tin ở đây
+const info = {
+  author: "Hoàng Hải",
+  email: "hoanghaitdvp98@gmail.com",
+  website: "https://sotay.online",
+  appName: "Sổ tay online",
+};
 
-  useEffect(() => {
-    console.log(id_nguoidung);
-  }, [id_nguoidung]);
-
-  const [preview, setPreview] = useState(null);
-  const fileInputRef = useRef(null);
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setPreview(imageUrl);
-    }
-  };
-  const handleLogout = () => {
-    try {
-      document.cookie = "token=; Max-Age=0; path=/";
-    } catch (e) {
-      console.error("Clear cookie error:", e);
-    }
-    setUser(null);
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
-
-    message.success("Đã đăng xuất");
-    nav("/login", { replace: true });
-  };
-
-  const handleClick = () => {
-    fileInputRef.current.click();
-  };
+const TermsInfo = () => {
+  const { author, email, website, appName } = info;
 
   return (
-    <div className="p-6 space-y-6 h-full relative">
-      <div className="flex justify-center">
-        <div className="relative">
-          <Image
-            className="rounded-2xl shadow-amber-200"
-            width={150}
-            height={150}
-            alt="Avatar"
-            src={preview || cuphong}
-          />
+    <section
+      className={`text-[14px] leading-6 text-gray-800 gap-3 m-3`}
+      role="document"
+      aria-label="Điều khoản sử dụng & thông tin tác giả"
+    >
+      <h3 className="text-[16px] font-semibold mb-2 text-center">
+        Điều khoản sử dụng & thông tin tác giả
+      </h3>
 
-          <button
-            type="button"
-            onClick={handleClick}
-            className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow-md hover:bg-gray-100"
-          >
-            <FaCamera className="text-gray-700" />
-          </button>
+      <p className="mb-2">
+        {appName ? <strong>{appName}</strong> : "Phần mềm"} được phát triển và
+        cung cấp bởi <strong>{author}</strong> với mục đích hỗ trợ người dùng
+        trong công việc và đời sống.
+      </p>
 
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-[auto_1fr] gap-y-2 gap-x-4 rounded-lg border-[1px] border-dashed bg-white py-[5px]">
-        <div className="w-15  mx-2">Họ tên: </div>
-        <div>{user?.username ? user?.username : "Hi Tech"}</div>
+      <ul className="list-disc pl-5 space-y-2 mb-3">
+        <li>
+          Trong giai đoạn sử dụng <strong>miễn phí</strong>, tác giả{" "}
+          <strong>không chịu trách nhiệm</strong> đối với bất kỳ sai sót, lỗi,
+          thiệt hại hay vi phạm nào phát sinh từ việc sử dụng phần mềm.
+        </li>
+        <li>
+          Người dùng tự chịu trách nhiệm đối với mọi dữ liệu, nội dung và kết
+          quả khai thác từ ứng dụng; cam kết không sử dụng vào mục đích vi phạm
+          pháp luật, gây hại hoặc xâm phạm quyền lợi bên thứ ba.
+        </li>
+        <li>
+          Tác giả có quyền thay đổi, nâng cấp hoặc chấm dứt cung cấp sản phẩm
+          bất cứ lúc nào mà không cần thông báo trước.
+        </li>
+        <li>
+          Việc tiếp tục sử dụng phần mềm đồng nghĩa với việc bạn đã đọc, hiểu và
+          chấp nhận các điều khoản này.
+        </li>
+      </ul>
 
-        <div className="w-15  mx-2">SĐT: </div>
-        <div>{user?.userphone ? user?.phone : "0123-456-789"}</div>
-
-        <div className="w-15  mx-2">Địa chỉ: </div>
+      <div className="border-t pt-2 mt-2">
+        <div className="font-medium mb-1">Liên hệ hỗ trợ</div>
         <div>
-          {user?.address ? user?.address : "Vinh Tiến - Bình Tuyền - Phú Thọ"}
+          📧 Email:{" "}
+          <a href={`mailto:${email}`} className="underline">
+            {email}
+          </a>
         </div>
+        {website && (
+          <div>
+            🌐 Website:{" "}
+            <a
+              href={website}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              {website}
+            </a>
+          </div>
+        )}
       </div>
-      <div className="w-full mx-auto flex flex-col gap-2 text-left">
-        <ChangePass>
-          <Button type="primary" className="!h-[40px]" block>
-            Đổi mật khẩu
-            <HiOutlineKey />
-          </Button>
-        </ChangePass>
-        <CategoryManager>
-          <Button type="primary" className="!h-[40px]" block>
-            Danh sách các nhóm
-            <VscSymbolClass className=" mr-[4px]" />
-          </Button>
-        </CategoryManager>
-
-        <ClientManager>
-          <Button
-            type="primary"
-            className="!h-[40px] mt-1 border !border-dashed"
-            block
-          >
-            Danh sách khách hàng
-          </Button>
-        </ClientManager>
-
-        <Button type="text" block onClick={handleLogout}>
-          <span className="border-b-[#3d3d3d] border-b">Đăng xuất</span>
-          <MdLogout className="text-[#295fff] mr-[4px]" />
-        </Button>
-      </div>
-    </div>
+    </section>
   );
 };
 
-export default Info;
+export default TermsInfo;

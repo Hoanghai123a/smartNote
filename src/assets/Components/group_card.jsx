@@ -18,7 +18,10 @@ const Groupcard = ({ children, idKH, className }) => {
 
   useEffect(() => {
     if (!isDetailModalOpen) return;
-    const notes = user?.danhsachNote?.filter((r) => r.khachhang == idKH) || [];
+    const notes =
+      user?.danhsachNote?.filter(
+        (r) => r.khachhang == idKH && r.trangthai == "not"
+      ) || [];
 
     setTotalMoney(
       notes.reduce(
@@ -33,6 +36,7 @@ const Groupcard = ({ children, idKH, className }) => {
       (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
     );
     setList(sorted);
+    console.log("abc", sorted);
   }, [isDetailModalOpen, user?.danhsachNote, idKH]);
 
   const handleClick = (e) => {

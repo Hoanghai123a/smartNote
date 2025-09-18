@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaUser, FaLock, FaPhone, FaStore } from "react-icons/fa";
 import { DownOutlined } from "@ant-design/icons";
 import api from "../assets/Components/api";
-import { message } from "antd";
+import { Button, message } from "antd";
 
 const Signup_index = () => {
   const [expandStore, setExpandStore] = useState(false);
@@ -16,10 +16,10 @@ const Signup_index = () => {
   const [fullname, setFullname] = useState("");
   const [birthday, setBirthday] = useState("");
   const [storeName, setStoreName] = useState("");
-  const [address, setaddress] = useState("");
+  const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
       return message.warning("Vui lòng nhập tên đăng nhập và mật khẩu");
@@ -28,36 +28,50 @@ const Signup_index = () => {
       return message.error("Mật khẩu nhập lại không khớp");
     }
 
-    submitData();
+    await submitData();
   };
 
   const submitData = async () => {
     setLoading(true);
-    const body = {
-      username,
-      password,
-      isStore: expandStore,
-    };
-    if (expandStore) {
-      body.thongtinthem = JSON.stringify({
-        loaitaikhoan: "cửa hàng",
-        fullname,
-        birthday,
-        storeName,
-        address,
-        phone,
-      });
-    }
+    try {
+      const body = {
+        username,
+        password,
+        isStore: expandStore,
+      };
 
-    api
-      .post("/user/", body)
-      .then(() => {
-        message.success("Đăng ký thành công!");
-      })
-      .catch(() => {
-        message.error("Đăng ký thất bại");
-      })
-      .finally(setLoading(false));
+      if (expandStore) {
+        body.thongtinthem = JSON.stringify({
+          loaitaikhoan: "cửa hàng",
+          fullname,
+          birthday,
+          storeName,
+          address,
+          phone,
+        });
+      }
+
+      const res = await api.post("/register/", body);
+
+      message.success("Đăng ký thành công!");
+      console.log("Kết quả đăng ký:", res.data);
+
+      // Sau khi đăng ký thành công có thể reset form
+      setUsername("");
+      setPassword("");
+      setConfirm("");
+      setFullname("");
+      setBirthday("");
+      setStoreName("");
+      setAddress("");
+      setPhone("");
+      setExpandStore(false);
+    } catch (err) {
+      console.error("Lỗi đăng ký:", err);
+      message.error("Đăng ký thất bại");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,7 +81,10 @@ const Signup_index = () => {
           Đăng ký tài khoản
         </div>
 
-        <div className="flex flex-col gap-3 py-8 max-w-[80vw] w-[80vw]">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-3 py-8 max-w-[80vw] w-[80vw]"
+        >
           {/* Username */}
           <div className="flex items-center gap-1 font-[500]">
             Tên đăng nhập
@@ -167,7 +184,7 @@ const Signup_index = () => {
               <input
                 type="text"
                 value={address}
-                onChange={(e) => setaddress(e.target.value)}
+                onChange={(e) => setAddress(e.target.value)}
                 className="border-1 w-full !border-[#dbdbdb] rounded-[8px] !py-3 px-3 outline-none shadow"
                 placeholder="Địa chỉ cửa hàng"
               />
@@ -188,12 +205,14 @@ const Signup_index = () => {
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
-            className="bg-[#0180f6] text-white font-[500] rounded-[8px] py-4 mt-5 shadow hover:bg-[#026cd1] transition"
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading} // antd sẽ tự disable + hiển thị spinner
+            className="bg-[#0180f6] text-white font-[500] rounded-[8px] py-4 mt-5 shadow hover:bg-[#026cd1]"
           >
             Đăng ký
-          </button>
+          </Button>
 
           <div className="flex flex-col gap-1 text-center mt-3 text-[#999]">
             Đã có tài khoản?
@@ -201,7 +220,7 @@ const Signup_index = () => {
               Đăng nhập
             </a>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

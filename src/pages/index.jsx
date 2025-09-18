@@ -2,16 +2,14 @@ import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 import { HiHome } from "react-icons/hi";
 import "antd/dist/reset.css";
-import { FaRegNoteSticky } from "react-icons/fa6";
+import { FaUserLarge } from "react-icons/fa6";
 import { IoInformationCircle, IoList } from "react-icons/io5";
 import api from "../assets/Components/api";
 import { useUser } from "../stores/userContext";
-import { useGlobalData } from "../stores/dataContext";
 
 const Home = () => {
   const nav = useNavigate();
   const { user, setUser } = useUser();
-  const { globalData, setGlobalData } = useGlobalData();
   // Hàm lấy cookie theo tên
   const getCookie = (token) => {
     const value = `; ${document.cookie}`;
@@ -30,16 +28,13 @@ const Home = () => {
     }
 
     api.get(`/user`, token).then((respon) => {
-      console.log(respon);
-
       respon.token = token;
       setUser(respon);
 
-      api.get(`/notes/`, token).then((e) => {
+      api.get(`/notes/?page_size=99999`, token).then((e) => {
         setUser((old) => ({ ...old, danhsachNote: e.results }));
         console.log("DS bản ghi", e.results);
       });
-      setGlobalData(respon);
       api.get(`/khachhang/`, token).then((e) => {
         setUser((old) => ({ ...old, danhsachKH: e.results }));
         console.log("KH", e.results);
@@ -82,6 +77,16 @@ const Home = () => {
             }
           >
             <IoList className="w-6 h-6" />
+          </NavLink>
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-md ${
+                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
+              }`
+            }
+          >
+            <FaUserLarge className="w-5 h-5" />
           </NavLink>
           <NavLink
             to="/info"
