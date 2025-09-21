@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button, Input } from "antd";
 import React, { useState } from "react";
 import { CiStickyNote } from "react-icons/ci";
 import { FaLock, FaUser } from "react-icons/fa";
@@ -59,46 +59,39 @@ const Login_index = () => {
             Chào mừng bạn quay trở lại!
           </div>
         </div>
-        <div className="flex flex-col gap-1 py-8 max-w-[80vw] w-[80vw]">
+        <div className="flex flex-col gap-3 py-8 max-w-[80vw] w-[80vw]">
           <div className="flex items-center gap-1 font-[500]">Tài khoản</div>
-          <div className="flex relative items-center w-full">
-            <FaUser className="absolute left-4 text-[#c4c4c4]" />
-            <input
-              type="text"
-              className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
-              placeholder="Tên đăng nhập"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  passwordRef.current.focus();
-                }
-              }}
-              value={inputdata.username}
-              onChange={(e) => {
-                setInputdata((old) => ({ ...old, username: e.target.value }));
-              }}
-            />
-          </div>
+          <Input
+            placeholder="Tên đăng nhập"
+            value={inputdata.username}
+            onChange={(e) =>
+              setInputdata((old) => ({ ...old, username: e.target.value }))
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") passwordRef.current.focus();
+            }}
+            prefix={<FaUser className="text-[#c4c4c4]" />}
+            className="border !border-[#dbdbdb] rounded-[8px] !py-3 shadow"
+          />
+
           <div className="flex items-center gap-1 font-[500] mt-2">
             Mật khẩu
           </div>
-          <div className="flex relative items-center w-full">
-            <FaLock className="absolute left-4 text-[#c4c4c4]" />
-            <input
-              ref={passwordRef}
-              type="password"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleLogin();
-                }
-              }}
-              value={inputdata.password}
-              onChange={(e) => {
-                setInputdata((old) => ({ ...old, password: e.target.value }));
-              }}
-              className="border-1 w-full !pl-10 !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
-              placeholder="Mật khẩu"
-            />
-          </div>
+          <Input.Password
+            ref={passwordRef}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleLogin();
+              }
+            }}
+            value={inputdata.password}
+            onChange={(e) => {
+              setInputdata((old) => ({ ...old, password: e.target.value }));
+            }}
+            className="border w-full !border-[#dbdbdb] rounded-[8px] !py-3 outline-none shadow"
+            placeholder="Mật khẩu"
+            prefix={<FaLock className="text-[#c4c4c4]" />}
+          />
           <div className="flex items-center mt-2 gap-1 text-[#999] text-[13px]">
             <input type="checkbox" className="mr-1 outline-[#999]" /> Nhớ mật
             khẩu
@@ -111,7 +104,7 @@ const Login_index = () => {
           >
             Đăng nhập
           </Button>
-          <div className="flex flex-col gap-1 text-center mt-3 text-[#999]">
+          <div className="flex flex-col gap-2 text-center mt-2 text-[#999]">
             hoặc
             <Link to="/signup" className="text-[#0180f6]">
               Tạo tài khoản

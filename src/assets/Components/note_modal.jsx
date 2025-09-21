@@ -5,8 +5,7 @@ import api from "./api";
 import { useUser } from "../../stores/userContext";
 import NoteForm from "./note_form";
 
-const STRIP_QTY_PRICE =
-  /\s*Số lượng:\s*\d+(?:[.,]\d+)?;\s*Đơn giá:\s*[\d.,]+₫\./;
+const STRIP_QTY_PRICE = /\s*SL:\s*\d+(?:[.,]\d+)?;\s*ĐG:\s*[\d.,]+₫\./;
 
 const NoteModal = ({
   mode = "add",
@@ -170,8 +169,8 @@ const NoteModal = ({
         <NoteForm
           form={form}
           user={user}
-          expandCalc={mode === "add" ? expandCalc : false}
-          onToggleExpand={mode === "add" ? toggleExtra : undefined}
+          expandCalc={expandCalc}
+          onToggleExpand={toggleExtra}
         />
       </Modal>
 

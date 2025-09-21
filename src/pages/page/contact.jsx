@@ -8,9 +8,9 @@ import { VscSymbolClass } from "react-icons/vsc";
 import { FaCamera } from "react-icons/fa";
 import ChangePass from "../../assets/Components/change_pass.jsx";
 import { MdLogout } from "react-icons/md";
-import { useUser } from "../../stores/userContext.jsx";
 import ClientManager from "../../assets/Components/client.jsx";
 import CategoryManager from "../../assets/Components/Category.jsx";
+import { useUser } from "../../stores/UserContext.jsx";
 
 const Contact = () => {
   const { user, setUser } = useUser();
@@ -51,13 +51,15 @@ const Contact = () => {
     <div className="p-6 space-y-6 h-full relative">
       <div className="flex justify-center">
         <div className="relative">
-          <Image
-            className="rounded-2xl shadow-amber-200"
-            width={150}
-            height={150}
-            alt="Avatar"
-            src={preview || cuphong}
-          />
+          <div className="flex">
+            <Image
+              className="rounded-2xl shadow-amber-200"
+              width={150}
+              height={150}
+              alt="Avatar"
+              src={preview || cuphong}
+            />
+          </div>
 
           <button
             type="button"
@@ -81,11 +83,11 @@ const Contact = () => {
         <div>{user?.username ? user?.username : "Hi Tech"}</div>
 
         <div className="w-15  mx-2">SĐT: </div>
-        <div>{user?.userphone ? user?.phone : "0123-456-789"}</div>
+        <div>{user?.thongtinthem?.phone ?? "0123-456-789"}</div>
 
         <div className="w-15  mx-2">Địa chỉ: </div>
         <div>
-          {user?.address ? user?.address : "Vinh Tiến - Bình Tuyền - Phú Thọ"}
+          {user?.thongtinthem?.address ?? "Vinh Tiến - Bình Tuyền - Phú Thọ"}
         </div>
       </div>
       <div className="w-full mx-auto flex flex-col gap-2 text-left">

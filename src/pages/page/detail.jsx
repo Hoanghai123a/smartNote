@@ -9,7 +9,9 @@ import { RiFilter3Line, RiArrowDownSLine } from "react-icons/ri";
 import NoteModal from "../../assets/Components/note_modal";
 import GetFieldFormID from "../../assets/Components/get_fied";
 import { DatePicker } from "antd-mobile";
-import { useUser } from "../../stores/UserContext";
+import { MdOutlineHistory } from "react-icons/md";
+import History_Card from "../../assets/Components/history_Card";
+import { useUser } from "../../stores/userContext";
 
 const normalizeVN = (s = "") =>
   s
@@ -22,6 +24,7 @@ const normalizeVN = (s = "") =>
 
 const DetailList = () => {
   const [data, setData] = useState([]);
+  const [dataHistory, setdataHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
 
@@ -37,6 +40,7 @@ const DetailList = () => {
       ? user?.danhsachNote
       : [];
     let fil = listNote.filter((row) => row.trangthai === "not");
+
     if (showDateRange && startTime && endTime) {
       const start = dayjs(startTime).startOf("day");
       const end = dayjs(endTime).endOf("day");
@@ -56,6 +60,39 @@ const DetailList = () => {
       (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
     );
     setData(sorted);
+
+    //dữ liệu cho lịch sử
+
+    const filHistory = listNote
+      .filter((row) => row.trangthai === "done")
+      .sort((a, b) => {
+        // so sánh họ tên trước
+        const nameDiff = a.hoten.localeCompare(b.hoten, "vi", {
+          sensitivity: "base",
+        });
+        if (nameDiff !== 0) return nameDiff;
+
+        // nếu họ tên giống nhau → so sánh theo thời gian (mới nhất trước)
+        return new Date(b.thoigian) - new Date(a.thoigian);
+      })
+      .map((row) => ({
+        ...row,
+        hoten: (
+          <GetFieldFormID
+            id={row.khachhang}
+            findField="hoten"
+            getForm={user?.danhsachKH}
+          />
+        ),
+        sodienthoai: (
+          <GetFieldFormID
+            id={row.khachhang}
+            findField="sodienthoai"
+            getForm={user?.danhsachKH}
+          />
+        ),
+      }));
+    setdataHistory(filHistory);
   }, [
     user?.danhsachNote,
     startTime,
@@ -127,6 +164,10 @@ const DetailList = () => {
               </span>
               <RiArrowDownSLine className="text-neutral-500" size={16} />
             </div>
+
+            <History_Card data={dataHistory} className="ml-auto">
+              <MdOutlineHistory className="w-5 h-5" />
+            </History_Card>
           </div>
 
           {showFilName && (

@@ -1,5 +1,5 @@
 import { Button, Modal } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Payment from "./payment";
 import FieldMoney from "./fields/money";
 import FieldDate from "./fields/date";
@@ -32,12 +32,25 @@ const Groupcard = ({ children, idKH, className }) => {
         0
       )
     );
+
     const sorted = notes.sort(
       (a, b) => dayjs(b.thoigian).valueOf() - dayjs(a.thoigian).valueOf()
     );
     setList(sorted);
-    console.log("abc", sorted);
   }, [isDetailModalOpen, user?.danhsachNote, idKH]);
+
+  // === Group by ngày ===
+  const groupedByDate = useMemo(() => {
+    const map = new Map();
+    list.forEach((r) => {
+      const dateKey = dayjs(r.thoigian).format("YYYY-MM-DD");
+      if (!map.has(dateKey)) map.set(dateKey, []);
+      map.get(dateKey).push(r);
+    });
+    return [...map.entries()]
+      .sort((a, b) => new Date(b[0]) - new Date(a[0])) // ngày mới trước
+      .map(([dateKey, rows]) => ({ dateKey, rows }));
+  }, [list]);
 
   const handleClick = (e) => {
     if (
@@ -58,11 +71,12 @@ const Groupcard = ({ children, idKH, className }) => {
     }
     setIsDetailModalOpen(true);
   };
+
   return (
     <>
       <div onClick={handleClick}>{children}</div>
       <Modal
-        className={`${className}`}
+        className={className}
         title={
           <div className="flex flex-col text-left items-start border-b border-gray-400">
             <div className="flex items-center gap-1">
@@ -72,11 +86,11 @@ const Groupcard = ({ children, idKH, className }) => {
                 findField="hoten"
                 className="font-medium"
               />
-              {totalMoney && (
+              {totalMoney ? (
                 <div className="text-gray-500">
                   {"( " + totalMoney.toLocaleString("vi-VN") + "đ )"}
                 </div>
-              )}
+              ) : null}
             </div>
             <div className="flex items-center">
               <FieldPhone
@@ -101,49 +115,62 @@ const Groupcard = ({ children, idKH, className }) => {
           },
         }}
         footer={
-          <Payment id={idKH}>
+          <Payment id={idKH} sotien={-totalMoney}>
             <Button type="primary">Xóa toàn bộ</Button>
           </Payment>
         }
         style={{ top: 20 }}
         onCancel={() => setIsDetailModalOpen(false)}
       >
-        <div className="flex flex-col gap-2">
-          {list.map((row, stt) => (
-            <div
-              key={row.id}
-              className="rounded-lg p-1 border shadow-sm border-emerald-50"
-            >
-              <div className="flex gap-3">
-                <div className="max-w-[50px] text-neutral-500">#{stt + 1}</div>
+        <div className="flex flex-col gap-4">
+          {groupedByDate.map((block) => (
+            <div key={block.dateKey} className="relative pl-6">
+              {/* Line dọc cho ngày */}
+              <span className="pointer-events-none absolute left-0 top-3 bottom-3 border-l border-neutral-300" />
+              {/* Nhánh ngang */}
+              <span className="pointer-events-none absolute left-0 top-4 w-3 border-t border-neutral-300" />
 
-                <div className="w-[100px] items-center">
-                  <FieldDate data={dayjs(row.thoigian).format("DD-MM-YYYY")} />
-                </div>
-
-                <div className="flex items-center">
-                  <Fieldclass
-                    data={
-                      <GetFieldFormID
-                        id={row.loai}
-                        findField="type"
-                        getForm={user?.danhsachGroup}
-                      />
-                    }
-                  />
-                </div>
-
-                <div
-                  className={`flex ml-auto items-center ${
-                    row.phanloai == "in" ? "text-[green]" : "text-[red]"
-                  }`}
-                >
-                  <FieldMoney data={row.sotien} />
-                </div>
+              {/* Tiêu đề ngày */}
+              <div className="font-semibold mb-2">
+                <FieldDate data={dayjs(block.dateKey).format("DD-MM-YYYY")} />
               </div>
 
-              <div className="mt-1">
-                <FieldNote data={row.noidung} />
+              <div className="flex flex-col gap-2">
+                {block.rows.map((row) => (
+                  <div key={row.id} className="relative pl-6">
+                    {/* line cho card */}
+                    <span className="pointer-events-none absolute left-0 top-3 bottom-3 border-l border-neutral-200" />
+                    <span className="pointer-events-none absolute left-0 top-4 w-3 border-t border-neutral-200" />
+
+                    <div className="rounded-lg p-2 border shadow-sm border-emerald-50">
+                      <div className="flex items-center gap-3">
+                        <Fieldclass
+                          data={
+                            <GetFieldFormID
+                              id={row.loai}
+                              findField="type"
+                              getForm={user?.danhsachGroup}
+                            />
+                          }
+                        />
+                        <div
+                          className={`ml-auto ${
+                            row.phanloai == "in"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          <FieldMoney data={row.sotien} />
+                        </div>
+                      </div>
+                      {row.noidung && (
+                        <div className="mt-1">
+                          <FieldNote data={row.noidung} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

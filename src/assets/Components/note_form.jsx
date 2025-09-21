@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { DownOutlined } from "@ant-design/icons";
-import { Form, Input, InputNumber, Select } from "antd";
-import { DatePicker } from "antd-mobile"; // antd-mobile
+import { DownOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Form, Input, InputNumber, Select, Button, Space } from "antd";
+import { DatePicker } from "antd-mobile";
 import dayjs from "dayjs";
 import CategoryManager from "./Category";
 import { MdOutlinePlaylistAdd } from "react-icons/md";
@@ -9,31 +9,43 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import ClientManager from "./client";
 
 const STRIP_QTY_PRICE =
-  /\s*Số lượng:\s*\d+(?:[.,]\d+)?;\s*Đơn giá:\s*[\d.,]+₫\./;
+  /\s*Số lượng:\s*\d+(?:[.,]\d+)?;\s*Đơn giá:\s*[\d.,]+₫\./g;
 
 const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
-  const quantity = Form.useWatch("quantity", form);
-  const unitPrice = Form.useWatch("unitPrice", form);
   const currentId = Form.useWatch("userName", form);
+  const items = Form.useWatch("items", form) || [];
 
   const [openDate, setOpenDate] = useState(false);
 
-  // đồng bộ money + note khi bật expandCalc
+  // === đồng bộ money + note từ danh sách items
   useEffect(() => {
-    if (!expandCalc) return;
-    const q = Number(quantity);
-    const p = Number(unitPrice);
-    if (!Number.isFinite(q) || !Number.isFinite(p)) return;
+    if (!expandCalc) {
+      form.setFieldsValue({
+        note: "", // reset ghi chú
+        money: null, // reset số tiền luôn nếu muốn
+      });
+    }
+    if (!Array.isArray(items)) return;
 
-    const total = q * p;
+    let total = 0;
+    const lines = [];
+
+    items.forEach((item) => {
+      const q = Number(item?.quantity);
+      const p = Number(item?.unitPrice);
+      if (!Number.isFinite(q) || !Number.isFinite(p)) return;
+      total += q * p;
+      lines.push(`Số lượng: ${q}; Đơn giá: ${p.toLocaleString("vi-VN")}₫.`);
+    });
+
     const currentNote = form.getFieldValue("note") || "";
-    const base = currentNote.replace(STRIP_QTY_PRICE, "");
-    const extraNote = ` Số lượng: ${q}; Đơn giá: ${p.toLocaleString(
-      "vi-VN"
-    )}₫.`;
+    const base = currentNote.replace(STRIP_QTY_PRICE, "").trim();
 
-    form.setFieldsValue({ money: total, note: (base + extraNote).trim() });
-  }, [expandCalc, quantity, unitPrice, form]);
+    form.setFieldsValue({
+      money: total,
+      note: [base, ...lines].filter(Boolean).join("\n"),
+    });
+  }, [expandCalc, items, form]);
 
   // options
   const nameSelect = (user?.danhsachKH || []).map((u) => ({
@@ -46,11 +58,11 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
   }));
 
   const formatPhone = (sdt) => {
-    const d = String(sdt ?? "").replace(/\D/g, ""); // giữ lại số
+    const d = String(sdt ?? "").replace(/\D/g, "");
     if (!d) return "";
     if (d.length <= 4) return d;
     if (d.length <= 7) return `${d.slice(0, 4)}-${d.slice(4)}`;
-    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`; // 4-3-3
+    return `${d.slice(0, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`;
   };
 
   // khi chọn người → auto phone
@@ -79,8 +91,10 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         date: dayjs().toDate(),
         category: "in",
         money: null,
+        items: [{ quantity: 0, unitPrice: 0 }],
       }}
     >
+      {/* Họ tên */}
       <Form.Item label="Họ tên">
         <div className="flex items-center gap-2">
           <Form.Item name="userName" noStyle>
@@ -89,18 +103,12 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
               placeholder="Chọn họ tên"
               options={nameSelect}
               optionFilterProp="label"
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
             />
           </Form.Item>
           <ClientManager>
             <button
               type="button"
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
-              aria-label="Thêm khách hàng"
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-white"
             >
               <AiOutlineUserAdd className="text-[cadetblue]" size={23} />
             </button>
@@ -108,17 +116,14 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         </div>
       </Form.Item>
 
+      {/* SĐT */}
       <Form.Item label="SĐT" name="userPhone">
         <Input disabled />
       </Form.Item>
 
-      <Form.Item
-        label="Ngày"
-        name="date"
-        rules={[{ required: true, message: "Chọn ngày" }]}
-      >
+      {/* Ngày */}
+      <Form.Item label="Ngày" name="date" rules={[{ required: true }]}>
         <>
-          {/* trigger để mở DatePicker */}
           <Input
             readOnly
             value={
@@ -126,14 +131,10 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
                 ? dayjs(form.getFieldValue("date")).format("YYYY-MM-DD")
                 : ""
             }
-            placeholder="Chọn ngày"
             onClick={() => setOpenDate(true)}
           />
           <DatePicker
             title="Chọn ngày"
-            cancelText="Hủy"
-            confirmText="Xác nhận"
-            precision="day"
             visible={openDate}
             onClose={() => setOpenDate(false)}
             onConfirm={(val) => {
@@ -144,6 +145,7 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         </>
       </Form.Item>
 
+      {/* Nhóm */}
       <Form.Item label="Nhóm">
         <div className="flex items-center gap-2">
           <Form.Item name="group" noStyle>
@@ -152,8 +154,7 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
           <CategoryManager>
             <button
               type="button"
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-white text-[#8c8c8c] hover:border-[#40a9ff] hover:text-[#40a9ff] transition-colors"
-              aria-label="Thêm nhóm"
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-white"
             >
               <MdOutlinePlaylistAdd className="text-[cadetblue]" size={23} />
             </button>
@@ -161,19 +162,18 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         </div>
       </Form.Item>
 
-      <Form.Item
-        label="Loại hình"
-        name="category"
-        rules={[{ required: true, message: "Chọn loại hình" }]}
-      >
+      {/* Loại hình */}
+      <Form.Item label="Loại hình" name="category" rules={[{ required: true }]}>
         <Select
+          className="w-full"
           options={[
-            { label: "Cần thu (Cho nợ / Đã trả)", value: "in" },
-            { label: "Cần trả (Ghi nợ / Đã thu)", value: "out" },
+            { label: "Chờ thu", value: "in" },
+            { label: "Cần trả", value: "out" },
           ]}
         />
       </Form.Item>
 
+      {/* Toggle expand */}
       {onToggleExpand && (
         <div
           className="flex items-center justify-center select-none"
@@ -184,7 +184,7 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
             onClick={onToggleExpand}
             className="w-full text-left text-gray-400 hover:text-gray-600 transition"
           >
-            <div className="flex items-center text-gray-400 gap-2 justify-end">
+            <div className="flex items-center gap-2 justify-end">
               <span className="text-sm">Tùy chọn thêm</span>
               <DownOutlined
                 className={`text-xs transition-transform ${
@@ -196,28 +196,49 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         </div>
       )}
 
+      {/* Danh sách nhiều dòng quantity × unitPrice */}
       {expandCalc && (
-        <Form.Item colon={false}>
-          <div className="flex gap-2 items-center justify-end">
-            <Form.Item
-              name="quantity"
-              noStyle
-              rules={[{ required: true, message: "Nhập số lượng" }]}
-            >
-              <InputNumber min={0} placeholder="Số lượng" />
-            </Form.Item>
-            <span>×</span>
-            <Form.Item
-              name="unitPrice"
-              noStyle
-              rules={[{ required: true, message: "Nhập đơn giá" }]}
-            >
-              <InputNumber min={0} placeholder="Đơn giá" />
-            </Form.Item>
-          </div>
-        </Form.Item>
+        <Form.List name="items">
+          {(fields, { add, remove }) => (
+            <div className="flex flex-col ml-[100px] pb-2">
+              {fields.map(({ key, name, ...restField }) => (
+                <Space key={key} align="baseline">
+                  <Form.Item
+                    {...restField}
+                    name={[name, "quantity"]}
+                    rules={[{ required: true, message: "Nhập số lượng" }]}
+                  >
+                    <InputNumber min={0} placeholder="Số lượng" />
+                  </Form.Item>
+                  <span>×</span>
+                  <Form.Item
+                    {...restField}
+                    name={[name, "unitPrice"]}
+                    rules={[{ required: true, message: "Nhập đơn giá" }]}
+                  >
+                    <InputNumber min={0} placeholder="Đơn giá" />
+                  </Form.Item>
+                  {fields.length > 1 && (
+                    <DeleteOutlined
+                      onClick={() => remove(name)}
+                      className="text-red-500 cursor-pointer"
+                    />
+                  )}
+                </Space>
+              ))}
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                icon={<PlusOutlined />}
+              >
+                Thêm dòng
+              </Button>
+            </div>
+          )}
+        </Form.List>
       )}
 
+      {/* Số tiền */}
       <Form.Item label="Số tiền" name="money">
         <InputNumber
           min={0}
@@ -229,6 +250,7 @@ const NoteForm = ({ form, user, expandCalc, onToggleExpand }) => {
         />
       </Form.Item>
 
+      {/* Ghi chú */}
       <Form.Item label="Ghi chú" name="note">
         <Input.TextArea rows={3} />
       </Form.Item>
