@@ -107,5 +107,39 @@ a {
   transition: none !important; /* tắt hiệu ứng */
 }
 
-.menuitem {
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+}
+
+/* New Page Styles */
+.client-card {
+  width: 189px;
+  height: 165px;
+}
+
+.user-avatar {
+  width: 43px;
+  height: 40px;
+}
+
+.search-container {
+  width: 240px;
+  height: 55px;
+}
+
+.add-button {
+  width: 55px;
+  height: 55px;
+}
+.ant-form-item-control-input-content {
+  flex: unset !important;
+  max-width: 100% !important;
+}
+
+.ant-form-item-control-input {
+  justify-content: flex-end !important;
+}
+.ant-input-number-input {
+  text-align: center !important;
 }

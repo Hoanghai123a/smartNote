@@ -121,7 +121,7 @@ const DetailList = () => {
     <div className="flex flex-col h-[100%] gap-4 md:flex-row relative">
       <NoteModal
         mode="add"
-        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] 
+        className="z-99 w-10 h-10 flex items-center justify-center rounded-full bg-[#24b8fc] 
         hover:bg-blue-600 shadow-lg mr-[8px] absolute right-4 bottom-20"
       >
         <AiOutlinePlus size={20} className="text-white" />
@@ -171,19 +171,10 @@ const DetailList = () => {
           </div>
 
           {showFilName && (
-            <Select
-              className="!mt-3 min-w-[180px] w-[220px]"
-              allowClear
-              showSearch
-              placeholder="Lọc theo khách hàng"
+            <CustomerSelect
               value={nameFilter}
               onChange={setNameFilter}
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={userOptions}
+              customers={user?.danhsachKH || []}
             />
           )}
 

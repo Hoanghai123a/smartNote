@@ -5,11 +5,10 @@ import FieldDate from "./fields/date";
 import FieldNote from "./fields/note";
 import FieldPhone from "./fields/phone";
 import Fieldclass from "./fields/class";
-import GetFieldFormID from "./get_fied";
-import Payment from "./payment";
 import dayjs from "dayjs";
 import { useUser } from "../../stores/userContext";
 import FieldName from "./fields/name";
+import GetFieldFormID from "./get_fied";
 
 const History_Card = ({ data = [], children, className }) => {
   const [open, setOpen] = useState(false);

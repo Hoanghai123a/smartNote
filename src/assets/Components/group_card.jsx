@@ -6,9 +6,8 @@ import FieldDate from "./fields/date";
 import FieldPhone from "./fields/phone";
 import FieldNote from "./fields/note";
 import dayjs from "dayjs";
-import { useUser } from "../../stores/userContext";
-import GetFieldFormID from "./get_fied";
 import Fieldclass from "./fields/class";
+import { useUser } from "../../stores/UserContext";
 
 const Groupcard = ({ children, idKH, className }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -80,30 +79,13 @@ const Groupcard = ({ children, idKH, className }) => {
         title={
           <div className="flex flex-col text-left items-start border-b border-gray-400">
             <div className="flex items-center gap-1">
-              <GetFieldFormID
-                id={idKH}
-                getForm={user?.danhsachKH}
-                findField="hoten"
-                className="font-medium"
-              />
               {totalMoney ? (
                 <div className="text-gray-500">
                   {"( " + totalMoney.toLocaleString("vi-VN") + "đ )"}
                 </div>
               ) : null}
             </div>
-            <div className="flex items-center">
-              <FieldPhone
-                data={
-                  <GetFieldFormID
-                    id={idKH}
-                    getForm={user?.danhsachKH}
-                    findField="sodienthoai"
-                  />
-                }
-                className="text-[12px] text-neutral-500"
-              />
-            </div>
+            <div className="flex items-center"></div>
           </div>
         }
         open={isDetailModalOpen}
@@ -144,15 +126,6 @@ const Groupcard = ({ children, idKH, className }) => {
 
                     <div className="rounded-lg p-2 border shadow-sm border-emerald-50">
                       <div className="flex items-center gap-3">
-                        <Fieldclass
-                          data={
-                            <GetFieldFormID
-                              id={row.loai}
-                              findField="type"
-                              getForm={user?.danhsachGroup}
-                            />
-                          }
-                        />
                         <div
                           className={`ml-auto ${
                             row.phanloai == "in"

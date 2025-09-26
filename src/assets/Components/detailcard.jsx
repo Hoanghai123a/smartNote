@@ -1,79 +1,69 @@
-import FieldPhone from "./fields/phone";
-import FieldName from "./fields/name";
-import FieldMoney from "./fields/money";
-import Fieldclass from "./fields/class";
-import { FaRegEdit } from "react-icons/fa";
-import FieldNote from "./fields/note";
-import dayjs from "dayjs";
-import { useUser } from "../../stores/userContext";
-import { useMemo } from "react";
+import { FaArrowDown, FaPlus } from "react-icons/fa";
+import React, { useMemo } from "react";
 import NoteModal from "./note_modal";
 
-const Detailcard = ({ className, data }) => {
-  const { user } = useUser();
+import dayjs from "dayjs";
 
-  // Tìm group theo id (hỗ trợ data.loai là số, chuỗi, hoặc object {id,...})
-  const group = useMemo(() => {
-    const groups = Array.isArray(user?.danhsachGroup) ? user.danhsachGroup : [];
-    const id = String(data?.loai?.id ?? data?.loai ?? "");
-    if (!id) return undefined;
-    return groups.find((g) => String(g?.id) === id);
-  }, [user?.danhsachGroup, data?.loai]);
+const Detailcard = ({ data = [] }) => {
+  if (!data || data.length === 0) return null;
 
-  const dateStr = useMemo(() => {
-    const d = dayjs(data?.thoigian);
-    return d.isValid() ? d.format("DD-MM-YYYY") : "";
-  }, [data?.thoigian]);
+  // Gom nhóm theo ngày (yyyy-MM-dd)
+  const grouped = useMemo(() => {
+    const map = {};
+
+    data.forEach((n) => {
+      const d = dayjs(n.thoigian).format("YYYY-MM-DD");
+      if (!map[d]) map[d] = { date: dayjs(d), total: 0 };
+      const val = Number(n.sotien) || 0;
+      map[d].total += n.phanloai === "in" ? val : -val;
+    });
+
+    // Lấy top 3 ngày gần nhất có dữ liệu
+    return Object.values(map)
+      .sort((a, b) => b.date.valueOf() - a.date.valueOf()) // sort desc
+      .slice(0, 3)
+      .map((g) => ({
+        ...g,
+        label: g.date.format("DD/MM"), // label theo ngày/tháng
+      }));
+  }, [data]);
 
   return (
-    <div className={className}>
-      <>
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-600">
-            #{data?.stt ?? ""}
-          </span>
-          <div className="flex gap-2">
-            <span className="text-xs text-gray-400">{dateStr}</span>
-            <NoteModal mode="edit" data={data} className="ant-modal">
-              <FaRegEdit className="text-gray-400 " />
-            </NoteModal>
+    <div className="bg-white rounded-2xl flex flex-col gap-2 py-3 px-3 shadow">
+      {/* Header */}
+      <div className="flex justify-between items-center pb-2">
+        <div className="font-semibold text-lg">{data[0]?.hoten}</div>
+        <NoteModal mode="add" data={data[0]}>
+          <FaPlus className="text-[#0084FF]" />
+        </NoteModal>
+      </div>
+
+      {/* Body: 3 ngày gần nhất */}
+      {grouped.map((g) => (
+        <div
+          key={g.label}
+          className="flex justify-between items-center px-1 py-1 text-gray-600"
+        >
+          <div>{g.label}</div>
+          <div
+            className={`flex items-center gap-1 font-medium ${
+              g.total > 0 ? "text-green-600" : "text-red-500"
+            }`}
+          >
+            <FaArrowDown className={g.total > 0 ? "rotate-180" : ""} />
+            <span className="text-black">
+              {Math.abs(g.total).toLocaleString()}đ
+            </span>
           </div>
         </div>
-        <div className="space-y-1 text-sm">
-          <div className="flex w-full">
-            <div className="flex-1">
-              <div className="flex items-center">
-                <FieldName data={data?.hoten ?? ""} />
-              </div>
-              <div className="flex items-center">
-                <FieldPhone data={data?.sodienthoai ?? ""} />
-              </div>
-            </div>
+      ))}
 
-            <div className="flex-1">
-              <div className="flex items-center">
-                <Fieldclass data={group?.type ?? ""} />
-              </div>
-
-              <div
-                className={`flex items-center ${
-                  data?.phanloai === "in" ? " text-[green]" : " text-[red]"
-                }`}
-              >
-                <FieldMoney data={data.sotien} />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start border-t border-gray-300 mt-[10px]">
-            <div className="flex flex-col">
-              <FieldNote data={data?.noidung ?? ""} />
-            </div>
-          </div>
-        </div>
-      </>
+      {/* Footer */}
+      <div className="pt-2 mt-auto flex justify-end">
+        <button className="text-[#0084FF] text-xs">Xem thêm &gt;&gt;</button>
+      </div>
     </div>
   );
 };
 
-export default Detailcard;
+export default React.memo(Detailcard);

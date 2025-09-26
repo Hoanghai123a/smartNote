@@ -7,7 +7,7 @@ import Contact from "./pages/page/contact";
 import Info from "./pages/page/info";
 import DetailList from "./pages/page/detail";
 import Home from "./pages/index";
-import Test from "./pages/test";
+import NewPage from "./pages/newpage/overview";
 
 const App_router = () => {
   return (
@@ -19,7 +19,7 @@ const App_router = () => {
           <Route path="detail" element={<DetailList />} />
           <Route path="contact" element={<Contact />} />
           <Route path="info" element={<Info />} />
-          <Route path="test" element={<Test />} />
+          <Route path="newpage" element={<NewPage />} />
         </Route>
 
         <Route path="/login" element={<Login_index />}></Route>

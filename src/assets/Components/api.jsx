@@ -218,12 +218,28 @@ function setCookie(name, value, seconds) {
   if (seconds) {
     expires = `; max-age=${seconds}`;
   }
-  document.cookie = `${name}=${value || ""}${expires}; path=/`;
+  document.cookie = `${name}=${
+    value || ""
+  }${expires}; path=/; Secure; SameSite=None`;
 }
 function removeCookie(name) {
   document.cookie = `${name}=; Max-Age=0; path=/`;
 }
+function saveToken(token) {
+  localStorage.setItem("token", token);
+}
+
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+function removeToken() {
+  localStorage.removeItem("token");
+}
 export default {
+  saveToken,
+  getToken,
+  removeToken,
   setCookie,
   removeCookie,
   getCookie,

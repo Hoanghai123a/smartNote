@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 const UserContext = createContext();
 // State chứa thông tin của người dùng xuyên suốt quá trình dùng app

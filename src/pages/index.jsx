@@ -1,51 +1,58 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { HiHome } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import "antd/dist/reset.css";
-import { FaUserLarge } from "react-icons/fa6";
-import { IoInformationCircle, IoList } from "react-icons/io5";
 import api from "../assets/Components/api";
-import { useUser } from "../stores/UserContext";
-import { useLocation } from "react-router-dom";
-import { Spin } from "antd";
+import { Button, Select, Spin } from "antd";
+import {
+  FaPlus,
+  FaRegUser,
+  FaUsers,
+  FaTag,
+  FaLock,
+  FaInfoCircle,
+  FaPowerOff,
+  FaBookOpen,
+} from "react-icons/fa";
+import { TiThMenuOutline } from "react-icons/ti";
+import { MdOutlinePushPin } from "react-icons/md";
+import Detailcard from "../assets/Components/detailcard";
+import { useEnrichedNotes } from "../assets/Components/add_field_note";
+import { BsListCheck } from "react-icons/bs";
+import NoteModal from "../assets/Components/note_modal";
+import { IoMdClose } from "react-icons/io";
+import { useUser } from "../stores/userContext";
 
 const Home = () => {
   const nav = useNavigate();
   const { user, setUser } = useUser();
   const [loading, setLoading] = useState(false);
 
-  const { pathname } = useLocation();
   const mountedRef = useRef(true);
+  const [nameFilter, setNameFilter] = useState(undefined);
+  const [openMenu, setOpenMenu] = useState(false);
+  const [isFil, setIsFil] = useState(false);
 
-  // Lấy cookie theo tên
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
-  };
-
-  // Gom hàm check token + load dữ liệu
+  // check token + load dữ liệu
   const checkApi = async () => {
     setLoading(true);
     try {
-      const token = getCookie("token");
+      const token = api.getCookie("token");
       if (!token) {
-        console.warn("Không tìm thấy token");
         nav("/login", { replace: true });
         return;
       }
-
-      // 1) Lấy user
       const me = await api.get(`/user`, token);
-      // 2) Lấy dữ liệu song song
       const [notesRes, khRes, groupRes] = await Promise.all([
         api.get(`/notes/?page_size=99999`, token),
         api.get(`/khachhang/`, token),
         api.get(`/loaighichu/`, token),
       ]);
-
-      // 3) Cập nhật state một lần
       if (mountedRef.current) {
         setUser((old) => ({
           ...old,
@@ -55,7 +62,6 @@ const Home = () => {
           danhsachKH: khRes?.results || [],
           danhsachGroup: groupRes?.results || [],
         }));
-        console.log(user);
       }
     } catch (e) {
       console.error("checkApi error:", e);
@@ -63,6 +69,53 @@ const Home = () => {
       mountedRef.current && setLoading(false);
     }
   };
+
+  const normalizeVN = (s = "") =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .trim()
+      .replace(/\s+/g, " ");
+
+  const nameKey = useCallback((s = "") => normalizeVN(s), []);
+
+  const userOptions = useMemo(() => {
+    const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
+    const uniq = [
+      ...new Map(
+        arr
+          .filter((u) => (u?.hoten ?? "").trim())
+          .map((u) => [nameKey(u.hoten), u])
+      ).values(),
+    ];
+    return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
+  }, [user?.danhsachKH]);
+
+  const notes = useEnrichedNotes();
+
+  const listNote = useMemo(() => {
+    if (
+      !Array.isArray(user?.danhsachKH) ||
+      !Array.isArray(user?.danhsachNote)
+    ) {
+      return { ghim: [], thuong: [], toanbo: [], loc: [] };
+    }
+
+    const validNotes = notes.filter((n) => n.trangthai === "not");
+
+    return {
+      ghim: validNotes.filter((n) => n.ghim),
+      thuong: validNotes.filter((n) => !n.ghim),
+      toanbo: validNotes,
+      loc: validNotes.filter((n) => n.khachhang == nameFilter),
+    };
+  }, [notes, user?.danhsachKH, user?.danhsachNote, nameFilter]);
+
+  useEffect(() => {
+    setIsFil(!!nameFilter);
+  }, [nameFilter]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -72,66 +125,147 @@ const Home = () => {
     };
   }, []);
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 bg-gray-100 overflow-auto">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <Spin size="large" tip="">
-              <div style={{ minHeight: 100 }} />
-            </Spin>
-          </div>
-        ) : (
-          <Outlet />
-        )}
-      </div>
+  const { dataByCustomerThuong, dataByCustomerGhim } = useMemo(() => {
+    const mapThuong = {};
+    const mapGhim = {};
 
-      {/* Thanh menu cố định đáy mà không che nội dung */}
-      <div className="sticky bottom-0 w-full border-t bg-white p-3 shadow-md">
-        <div className="flex justify-around items-center gap-6">
-          <NavLink
-            to="/overview"
-            className={({ isActive }) =>
-              `menuitem px-4 py-2 rounded-md flex items-center justify-center ${
-                isActive || pathname === "/"
-                  ? "bg-blue-500 !text-white"
-                  : "hover:bg-gray-200 text-gray-700"
-              }`
-            }
-          >
-            <HiHome className="w-6 h-6 text-inherit" />
-          </NavLink>
-          <NavLink
-            to="/detail"
-            className={({ isActive }) =>
-              `menuitem px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
-              }`
-            }
-          >
-            <IoList className="w-6 h-6" />
-          </NavLink>
-          <NavLink
-            to="/contact"
-            className={({ isActive }) =>
-              `px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
-              }`
-            }
-          >
-            <FaUserLarge className="w-5 h-5" />
-          </NavLink>
-          <NavLink
-            to="/info"
-            className={({ isActive }) =>
-              `px-4 py-2 rounded-md ${
-                isActive ? "bg-blue-500 !text-white" : "hover:bg-gray-200"
-              }`
-            }
-          >
-            <IoInformationCircle className="w-6 h-6" />
-          </NavLink>
+    (listNote.thuong || []).forEach((r) => {
+      const id = String(r.khachhang);
+      if (!mapThuong[id]) mapThuong[id] = [];
+      mapThuong[id].push(r);
+    });
+
+    (listNote.ghim || []).forEach((r) => {
+      const id = String(r.khachhang);
+      if (!mapGhim[id]) mapGhim[id] = [];
+      mapGhim[id].push(r);
+    });
+
+    return { dataByCustomerThuong: mapThuong, dataByCustomerGhim: mapGhim };
+  }, [listNote.thuong, listNote.ghim]);
+
+  return (
+    <div className="flex flex-col h-full relative">
+      {openMenu && (
+        <div className="absolute mt-2 p-2 rounded-lg bg-white shadow-lg right-4 top-19 z-50">
+          <ul className="py-2 gap-2 flex flex-col !mb-0 text-base">
+            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+              <ClientManager>
+                <FaUsers className="text-blue-500" /> Khách hàng
+              </ClientManager>
+            </li>
+            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+              <FaLock className="text-yellow-500" /> Đổi mật khẩu
+            </li>
+            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+              <FaInfoCircle className="text-cyan-500" /> Về chúng tôi
+            </li>
+            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+              <FaPowerOff className="text-red-500" /> Đăng xuất
+            </li>
+            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+              <FaBookOpen className="text-green-600" /> Hướng dẫn
+            </li>
+          </ul>
         </div>
+      )}
+      {loading ? (
+        <div className="flex justify-center items-center h-full">
+          <Spin size="large">
+            <div style={{ minHeight: 100 }} />
+          </Spin>
+        </div>
+      ) : (
+        <div>
+          {/* Top */}
+          <div className="sticky top-0 bg-white p-2 shadow-md">
+            <div className="pt-10 pb-2 flex justify-around relative">
+              <div className="border rounded-[50%] shadow-md">
+                <FaRegUser className="w-9 h-9 p-2" />
+              </div>
+              <div className="content-center">
+                <Select
+                  className="min-w-[180px] w-[220px] shadow-md"
+                  allowClear
+                  showSearch
+                  placeholder="Nhập tên"
+                  value={nameFilter}
+                  onChange={setNameFilter}
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  options={userOptions}
+                />
+              </div>
+              {/* Menu */}
+              <div className="content-center">
+                <div
+                  onClick={() => setOpenMenu(!openMenu)}
+                  className="cursor-pointer hover:bg-gray-100 rounded-full p-1"
+                >
+                  {openMenu ? (
+                    <IoMdClose className="w-7 h-7 text-[red]" />
+                  ) : (
+                    <TiThMenuOutline className="w-7 h-7" />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="w-full overflow-y-auto relative">
+            {openMenu && (
+              <div
+                className="absolute inset-0 bg-[#f0efef05] backdrop-blur-sm z-40"
+                onClick={() => setOpenMenu(false)}
+              />
+            )}
+            <div className="list_ghim pt-8 px-3">
+              {!isFil ? (
+                <div>
+                  <div className="flex items-center border-b border-[#dfdfdf]">
+                    <MdOutlinePushPin className="w-5 h-5" />
+                    <div className="text-lg ml-2">Ghim</div>
+                  </div>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 p-2">
+                    {(user?.danhsachKH || []).map((row) => (
+                      <Detailcard
+                        key={row.id}
+                        data={dataByCustomerGhim[String(row.id)] || []}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex items-center mt-4 border-b border-[#dfdfdf]">
+                    <BsListCheck className="w-5 h-5" />
+                    <div className="text-lg ml-2">Danh sách</div>
+                  </div>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 p-2">
+                    {(user?.danhsachKH || []).map((row) => (
+                      <Detailcard
+                        key={row.id}
+                        data={dataByCustomerThuong[String(row.id)] || []}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Detailcard data={listNote.loc} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-10 right-5 z-50">
+        <NoteModal mode="add">
+          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-[#0084FF] !text-white shadow-lg hover:scale-110 transition-transform">
+            <FaPlus className="w-6 h-6" />
+          </div>
+        </NoteModal>
       </div>
     </div>
   );

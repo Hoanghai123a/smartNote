@@ -26,11 +26,13 @@ const Login_index = () => {
         password: inputdata.password,
       })
       .then((res) => {
-        api.setCookie("token", res.access_token, res.expires_in);
+        api.setCookie("token", res?.access_token, res?.expires_in);
+        api.saveToken(res?.data?.access_token);
         setUser(res);
         nav("/");
       })
       .catch((e) => {
+        console.log(e);
         api.error(e);
       })
       .finally(() => {
