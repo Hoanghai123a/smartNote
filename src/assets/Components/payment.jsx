@@ -2,9 +2,11 @@ import { Modal, message } from "antd";
 import { useUser } from "../../stores/userContext";
 import api from "./api";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const Payment = ({ children, id, sotien = 0 }) => {
   const { user, setUser } = useUser();
+  const nav = useNavigate();
 
   const handleClick = () => {
     Modal.confirm({
@@ -42,7 +44,7 @@ const Payment = ({ children, id, sotien = 0 }) => {
             khachhang: id,
             thoigian: dayjs().toISOString(),
             loai: null,
-            phanloai: Number(sotien) >= 0 ? "in" : "out",
+            phanloai: Number(sotien) < 0 ? "in" : "out",
             sotien: Math.abs(Number(sotien)) || 0,
             trangthai: "done",
             noidung: "tất toán",
@@ -56,6 +58,7 @@ const Payment = ({ children, id, sotien = 0 }) => {
           }));
 
           message.success("Đã hoàn tất công nợ");
+          nav("/", { replace: true });
         } catch (err) {
           console.error("❌ Lỗi khi xử lý công nợ:", err);
           message.error("Có lỗi xảy ra khi cập nhật công nợ");

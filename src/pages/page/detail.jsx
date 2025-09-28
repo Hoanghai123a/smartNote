@@ -19,6 +19,7 @@ import NoteModal from "../../assets/Components/note_modal";
 import Payment from "../../assets/Components/payment";
 import { useUser } from "../../stores/userContext";
 import api from "../../assets/Components/api";
+import { FaThumbtackSlash } from "react-icons/fa6";
 
 const Detail = ({ data }) => {
   const { user, setUser } = useUser();
@@ -46,9 +47,10 @@ const Detail = ({ data }) => {
   // Hàm ghim
   const handleGhim = async () => {
     try {
+      const newValue = !data.ghim; // đảo trạng thái hiện tại
       const res = await api.patch(
         `/khachhang/${data.id}/`,
-        { ghim: true },
+        { ghim: newValue },
         user?.token
       );
 
@@ -59,10 +61,12 @@ const Detail = ({ data }) => {
         ),
       }));
 
-      message.success("Đã ghim khách hàng");
+      message.success(
+        newValue ? "Đã ghim khách hàng" : "Đã bỏ ghim khách hàng"
+      );
     } catch (err) {
-      console.error("❌ Lỗi khi ghim:", err);
-      message.error("Không thể ghim khách hàng");
+      console.error("❌ Lỗi khi toggle ghim:", err);
+      message.error("Không thể cập nhật trạng thái ghim");
     }
   };
 
@@ -72,7 +76,15 @@ const Detail = ({ data }) => {
       key: "ghim",
       label: (
         <div className="flex items-center gap-2" onClick={handleGhim}>
-          <FaThumbtack className="text-blue-500" /> Ghim
+          {data?.ghim ? (
+            <>
+              <FaThumbtackSlash className="text-gray-500" /> Bỏ ghim
+            </>
+          ) : (
+            <>
+              <FaThumbtack className="text-blue-500" /> Ghim
+            </>
+          )}
         </div>
       ),
     },
@@ -204,7 +216,16 @@ const Detail = ({ data }) => {
           </div>
 
           {/* Dropdown Menu */}
-          <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+          <Dropdown
+            menu={{ items: menuItems }}
+            trigger={["click"]}
+            open={openMenu}
+            onOpenChange={(flag) => {
+              if (flag) {
+                setOpenMenu(true);
+              }
+            }}
+          >
             <div
               onClick={() => setOpenMenu(!openMenu)}
               className="cursor-pointer hover:bg-gray-100 rounded-full p-1"
@@ -281,13 +302,13 @@ const Detail = ({ data }) => {
 
               {/* Bên phải: nút thêm */}
               <NoteModal mode="add" data={{ ...data, thoigian: day.key }}>
-                <button
+                <div
                   className="!text-[#0084FF] !text-xl leading-none"
                   aria-label="Thêm"
                   title="Thêm bản ghi mới"
                 >
                   +
-                </button>
+                </div>
               </NoteModal>
             </div>
 
@@ -334,10 +355,10 @@ const Detail = ({ data }) => {
       {/* Floating Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 z-15">
         <NoteModal mode="add" data={data}>
-          <button className="!w-[95vw] py-3 rounded-xl bg-blue-500 !text-white font-semibold shadow-lg active:scale-95 flex items-center justify-center gap-2">
+          <div className="!w-[95vw] py-3 rounded-xl bg-blue-500 !text-white font-semibold shadow-lg active:scale-95 flex items-center justify-center gap-2">
             <IoAddCircleOutline className="text-white w-6 h-6" />
             Thêm bản ghi mới
-          </button>
+          </div>
         </NoteModal>
       </div>
 

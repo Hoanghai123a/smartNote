@@ -65,7 +65,7 @@ const Home = () => {
           danhsachKH: khRes?.results || [],
           danhsachGroup: groupRes?.results || [],
         }));
-        console.log("danhsachKH", user.danhsachKH);
+        console.log("danhsachKH", khRes?.results);
       }
     } catch (e) {
       console.error("checkApi error:", e);
@@ -99,22 +99,45 @@ const Home = () => {
 
   const notes = useEnrichedNotes();
 
-  const listNote = useMemo(() => {
+  // ✅ phân loại KH theo ghim
+  const listByKH = useMemo(() => {
     if (
       !Array.isArray(user?.danhsachKH) ||
       !Array.isArray(user?.danhsachNote)
     ) {
-      return { ghim: [], thuong: [], toanbo: [], loc: [] };
+      return { ghim: [], thuong: [], loc: [] };
     }
 
     const validNotes = notes.filter((n) => n.trangthai === "not");
 
-    return {
-      ghim: validNotes.filter((n) => n.ghim),
-      thuong: validNotes.filter((n) => !n.ghim),
-      toanbo: validNotes,
-      loc: validNotes.filter((n) => n.khachhang == nameFilter),
-    };
+    // nhóm notes theo KH
+    const notesByKH = {};
+    validNotes.forEach((n) => {
+      const id = String(n.khachhang);
+      if (!notesByKH[id]) notesByKH[id] = [];
+      notesByKH[id].push(n);
+    });
+
+    const ghim = [];
+    const thuong = [];
+    const loc = [];
+
+    (user?.danhsachKH || []).forEach((kh) => {
+      const id = String(kh.id);
+      const data = notesByKH[id] || [];
+
+      if (kh.ghim) {
+        ghim.push({ kh, data });
+      } else {
+        thuong.push({ kh, data });
+      }
+
+      if (nameFilter && String(kh.id) === String(nameFilter)) {
+        loc.push(...data);
+      }
+    });
+
+    return { ghim, thuong, loc };
   }, [notes, user?.danhsachKH, user?.danhsachNote, nameFilter]);
 
   useEffect(() => {
@@ -129,25 +152,6 @@ const Home = () => {
     };
   }, []);
 
-  const { dataByCustomerThuong, dataByCustomerGhim } = useMemo(() => {
-    const mapThuong = {};
-    const mapGhim = {};
-
-    (listNote.thuong || []).forEach((r) => {
-      const id = String(r.khachhang);
-      if (!mapThuong[id]) mapThuong[id] = [];
-      mapThuong[id].push(r);
-    });
-
-    (listNote.ghim || []).forEach((r) => {
-      const id = String(r.khachhang);
-      if (!mapGhim[id]) mapGhim[id] = [];
-      mapGhim[id].push(r);
-    });
-
-    return { dataByCustomerThuong: mapThuong, dataByCustomerGhim: mapGhim };
-  }, [listNote.thuong, listNote.ghim]);
-
   const handleLogout = () => {
     try {
       document.cookie = "token=; Max-Age=0; path=/";
@@ -161,6 +165,7 @@ const Home = () => {
     message.success("Đã đăng xuất");
     nav("/login", { replace: true });
   };
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Menu panel (animate zoom) */}
@@ -268,38 +273,40 @@ const Home = () => {
             <div className="list_ghim pt-8 px-3">
               {!isFil ? (
                 <div>
+                  {/* --- GHIM --- */}
                   <div className="flex items-center border-b border-[#dfdfdf]">
                     <MdOutlinePushPin className="w-5 h-5" />
                     <div className="text-lg ml-2">Ghim</div>
                   </div>
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 p-2">
-                    {(user?.danhsachKH || []).map((row) => (
+                    {listByKH.ghim.map(({ kh, data }) => (
                       <Detailcard
-                        key={row.id}
-                        data={dataByCustomerGhim[String(row.id)] || []}
-                        KH={row}
-                        onClick={() => nav(`/detail/${row.id}`)}
+                        key={kh.id}
+                        data={data}
+                        KH={kh}
+                        onClick={() => nav(`/detail/${kh.id}`)}
                       />
                     ))}
                   </div>
 
+                  {/* --- DANH SÁCH --- */}
                   <div className="flex items-center mt-4 border-b border-[#dfdfdf]">
                     <BsListCheck className="w-5 h-5" />
                     <div className="text-lg ml-2">Danh sách</div>
                   </div>
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 p-2">
-                    {(user?.danhsachKH || []).map((row) => (
+                    {listByKH.thuong.map(({ kh, data }) => (
                       <Detailcard
-                        key={row.id}
-                        data={dataByCustomerThuong[String(row.id)] || []}
-                        KH={row}
-                        onClick={() => nav(`/detail/${row.id}`)}
+                        key={kh.id}
+                        data={data}
+                        KH={kh}
+                        onClick={() => nav(`/detail/${kh.id}`)}
                       />
                     ))}
                   </div>
                 </div>
               ) : (
-                <Detailcard data={listNote.loc} />
+                <Detailcard data={listByKH.loc} />
               )}
             </div>
           </div>
