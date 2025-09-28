@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Form, message, Button } from "antd";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import api from "./api";
 import { useUser } from "../../stores/userContext";
 import NoteForm from "./note_form";
@@ -25,13 +25,20 @@ const NoteModal = ({
   const { user, setUser } = useUser();
 
   const openModal = () => {
+    console.log(data);
     form.setFieldsValue({
-      userName: data.khachhang ? String(data.khachhang) : undefined,
+      userName:
+        data?.id != null
+          ? String(data.id)
+          : data?.khachhang != null
+          ? String(data.khachhang)
+          : undefined,
+
       userPhone: data.sodienthoai ?? "",
+      date: data.thoigian ? dayjs(data.thoigian) : dayjs(),
     });
     if (mode === "edit") {
       form.setFieldsValue({
-        date: data.thoigian ? dayjs(data.thoigian) : null,
         category: data.phanloai ?? "in",
         soluong: data.quantity ?? 0,
         dongia: data.unitPrice ?? 0,

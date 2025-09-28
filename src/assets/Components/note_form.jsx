@@ -52,7 +52,7 @@ const NoteForm = ({ form, user, onSubmit }) => {
             <AiOutlineUsergroupAdd className="w-7 h-7 text-[#5f9ea0]" />
           </ClientManager>
 
-          {/* 👇 Đây mới là phần control */}
+          {/* phần control */}
           <Form.Item
             name="userName"
             noStyle

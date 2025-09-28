@@ -8,12 +8,11 @@ import React, {
 } from "react";
 import "antd/dist/reset.css";
 import api from "../assets/Components/api";
-import { Button, Select, Spin } from "antd";
+import { Button, message, Select, Spin } from "antd";
 import {
   FaPlus,
   FaRegUser,
   FaUsers,
-  FaTag,
   FaLock,
   FaInfoCircle,
   FaPowerOff,
@@ -27,6 +26,10 @@ import { BsListCheck } from "react-icons/bs";
 import NoteModal from "../assets/Components/note_modal";
 import { IoMdClose } from "react-icons/io";
 import { useUser } from "../stores/userContext";
+import ClientManager from "../assets/Components/client";
+import ChangePass from "../assets/Components/change_pass";
+import About from "./page/info";
+import Contact from "./page/contact";
 
 const Home = () => {
   const nav = useNavigate();
@@ -62,6 +65,7 @@ const Home = () => {
           danhsachKH: khRes?.results || [],
           danhsachGroup: groupRes?.results || [],
         }));
+        console.log("danhsachKH", user.danhsachKH);
       }
     } catch (e) {
       console.error("checkApi error:", e);
@@ -144,31 +148,67 @@ const Home = () => {
     return { dataByCustomerThuong: mapThuong, dataByCustomerGhim: mapGhim };
   }, [listNote.thuong, listNote.ghim]);
 
+  const handleLogout = () => {
+    try {
+      document.cookie = "token=; Max-Age=0; path=/";
+    } catch (e) {
+      console.error("Clear cookie error:", e);
+    }
+    setUser(null);
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+
+    message.success("Đã đăng xuất");
+    nav("/login", { replace: true });
+  };
   return (
     <div className="flex flex-col h-full relative">
-      {openMenu && (
-        <div className="absolute mt-2 p-2 rounded-lg bg-white shadow-lg right-4 top-19 z-50">
-          <ul className="py-2 gap-2 flex flex-col !mb-0 text-base">
-            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+      {/* Menu panel (animate zoom) */}
+      <div className="absolute right-4 top-19 z-55">
+        <div
+          className={[
+            "mt-2 p-2 rounded-xl bg-white shadow-lg",
+            "transform-gpu origin-top-right transition-all duration-200 ease-out",
+            openMenu
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 scale-95 -translate-y-2 pointer-events-none",
+          ].join(" ")}
+        >
+          {openMenu && (
+            <ul className="py-2 gap-2 flex flex-col !mb-0 text-base">
               <ClientManager>
-                <FaUsers className="text-blue-500" /> Khách hàng
+                <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                  <FaUsers className="text-blue-500" /> Khách hàng
+                </li>
               </ClientManager>
-            </li>
-            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
-              <FaLock className="text-yellow-500" /> Đổi mật khẩu
-            </li>
-            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
-              <FaInfoCircle className="text-cyan-500" /> Về chúng tôi
-            </li>
-            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
-              <FaPowerOff className="text-red-500" /> Đăng xuất
-            </li>
-            <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
-              <FaBookOpen className="text-green-600" /> Hướng dẫn
-            </li>
-          </ul>
+
+              <ChangePass>
+                <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                  <FaLock className="text-yellow-500" /> Đổi mật khẩu
+                </li>
+              </ChangePass>
+
+              <About>
+                <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                  <FaInfoCircle className="text-cyan-500" /> Về chúng tôi
+                </li>
+              </About>
+
+              <li
+                className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={handleLogout}
+              >
+                <FaPowerOff className="text-red-500" /> Đăng xuất
+              </li>
+
+              <li className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                <FaBookOpen className="text-green-600" /> Hướng dẫn
+              </li>
+            </ul>
+          )}
         </div>
-      )}
+      </div>
+
       {loading ? (
         <div className="flex justify-center items-center h-full">
           <Spin size="large">
@@ -180,9 +220,11 @@ const Home = () => {
           {/* Top */}
           <div className="sticky top-0 bg-white p-2 shadow-md">
             <div className="pt-10 pb-2 flex justify-around relative">
-              <div className="border rounded-[50%] shadow-md">
-                <FaRegUser className="w-9 h-9 p-2" />
-              </div>
+              <Contact>
+                <div className="border rounded-[50%] shadow-md">
+                  <FaRegUser className="w-9 h-9 p-2" />
+                </div>
+              </Contact>
               <div className="content-center">
                 <Select
                   className="min-w-[180px] w-[220px] shadow-md"
@@ -235,6 +277,8 @@ const Home = () => {
                       <Detailcard
                         key={row.id}
                         data={dataByCustomerGhim[String(row.id)] || []}
+                        KH={row}
+                        onClick={() => nav(`/detail/${row.id}`)}
                       />
                     ))}
                   </div>
@@ -248,6 +292,8 @@ const Home = () => {
                       <Detailcard
                         key={row.id}
                         data={dataByCustomerThuong[String(row.id)] || []}
+                        KH={row}
+                        onClick={() => nav(`/detail/${row.id}`)}
                       />
                     ))}
                   </div>

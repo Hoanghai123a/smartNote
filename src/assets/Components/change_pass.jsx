@@ -49,8 +49,7 @@ const ChangePass = ({ children, className }) => {
       >
         <Form
           form={form}
-          layout="horizontal"
-          labelCol={{ flex: "200px" }}
+          layout="vertical"
           colon={false}
           onFinish={handleFinish}
         >

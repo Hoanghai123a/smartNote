@@ -3,10 +3,12 @@ import React, { useMemo } from "react";
 import NoteModal from "./note_modal";
 
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
-const Detailcard = ({ data = [] }) => {
+const Detailcard = ({ data = [], KH = [] }) => {
   if (!data || data.length === 0) return null;
-
+  console.log("data", data);
+  const nav = useNavigate();
   // Gom nhóm theo ngày (yyyy-MM-dd)
   const grouped = useMemo(() => {
     const map = {};
@@ -32,8 +34,8 @@ const Detailcard = ({ data = [] }) => {
     <div className="bg-white rounded-2xl flex flex-col gap-2 py-3 px-3 shadow">
       {/* Header */}
       <div className="flex justify-between items-center pb-2">
-        <div className="font-semibold text-lg">{data[0]?.hoten}</div>
-        <NoteModal mode="add" data={data[0]}>
+        <div className="font-semibold text-lg">{KH.hoten}</div>
+        <NoteModal mode="add" data={KH}>
           <FaPlus className="text-[#0084FF]" />
         </NoteModal>
       </div>
@@ -60,7 +62,12 @@ const Detailcard = ({ data = [] }) => {
 
       {/* Footer */}
       <div className="pt-2 mt-auto flex justify-end">
-        <button className="text-[#0084FF] text-xs">Xem thêm &gt;&gt;</button>
+        <button
+          className="!text-[#43a4ff] text-xs"
+          onClick={() => nav(`/detail/${KH.id}`)}
+        >
+          Xem thêm &gt;&gt;
+        </button>
       </div>
     </div>
   );
