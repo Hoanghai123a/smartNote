@@ -1,9 +1,12 @@
 import { Button, Form, Input, Modal, message } from "antd";
 import React, { useState } from "react";
+import api from "./api";
+import { useUser } from "../../stores/userContext";
 
 const ChangePass = ({ children, className }) => {
   const [isChangePassModalOpen, setIsChangePassModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const { user } = useUser();
 
   const handleOpen = () => setIsChangePassModalOpen(true);
 
@@ -20,11 +23,21 @@ const ChangePass = ({ children, className }) => {
       return;
     }
 
-    // TODO: call API đổi mật khẩu
-    console.log("Submit data:", values);
-
-    message.success("Đổi mật khẩu thành công!");
-    handleClose();
+    api
+      .post(
+        "/changepass/",
+        {
+          new_password: newPass,
+          password: currentPass,
+        },
+        user?.token
+      )
+      .then(() => {
+        message.success("Đổi mật khẩu thành công!"), handleClose();
+      })
+      .catch((e) => {
+        message.success("Đổi mật khẩu thất bại!"), console.log("lỗi", e);
+      });
   };
 
   return (

@@ -104,6 +104,14 @@ const Home = () => {
 
   const nameKey = useCallback((s = "") => normalizeVN(s), []);
 
+  const formatPhone = (phone) => {
+    if (!phone) return "";
+    const cleaned = phone.replace(/\D/g, ""); // bỏ ký tự không phải số
+    return cleaned.replace(/(\d{4})(\d{3})(\d{0,3})/, (m, a, b, c) =>
+      c ? `${a}-${b}-${c}` : `${a}-${b}`
+    );
+  };
+
   const userOptions = useMemo(() => {
     const arr = Array.isArray(user?.danhsachKH) ? user.danhsachKH : [];
     const uniq = [
@@ -113,32 +121,56 @@ const Home = () => {
           .map((u) => [nameKey(u.hoten), u])
       ).values(),
     ];
-    return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
+    return uniq.map((u) => ({
+      label: (
+        <span>
+          {u.hoten}{" "}
+          <span className="text-gray-400 text-sm">
+            ({formatPhone(u.sodienthoai)})
+          </span>
+        </span>
+      ),
+      value: String(u?.id ?? ""),
+    }));
   }, [user?.danhsachKH]);
 
+  const notes = useEnrichedNotes();
   // ✅ phân loại KH theo ghim
   const listByKH = useMemo(() => {
-    if (!user?.danhsachKH?.length) return { ghim: [], thuong: [], loc: [] };
+    if (
+      !Array.isArray(user?.danhsachKH) ||
+      !Array.isArray(user?.danhsachNote)
+    ) {
+      return { ghim: [], thuong: [], loc: [] };
+    }
 
-    const notesByKH = user.danhsachNote.reduce((acc, n) => {
-      if (n.trangthai !== "not") return acc;
+    const validNotes = notes.filter((n) => n.trangthai === "not");
+
+    const notesByKH = {};
+    validNotes.forEach((n) => {
       const id = String(n.khachhang);
-      if (!acc[id]) acc[id] = [];
-      acc[id].push(n);
-      return acc;
-    }, {});
+      if (!notesByKH[id]) notesByKH[id] = [];
+      notesByKH[id].push(n);
+    });
 
     const ghim = [],
       thuong = [],
       loc = [];
-    user.danhsachKH.forEach((kh) => {
-      const data = notesByKH[kh.id] || [];
-      (kh.ghim ? ghim : thuong).push({ kh, data });
-      if (nameFilter && String(kh.id) === String(nameFilter)) loc.push(...data);
+
+    (user?.danhsachKH || []).forEach((kh) => {
+      const id = String(kh.id);
+      const data = notesByKH[id] || [];
+
+      if (kh.ghim) ghim.push({ kh, data });
+      else thuong.push({ kh, data });
+
+      if (nameFilter && String(kh.id) === String(nameFilter)) {
+        loc.push({ kh, data }); // ⚡ giữ cả KH + data
+      }
     });
 
     return { ghim, thuong, loc };
-  }, [user?.danhsachKH, user?.danhsachNote, nameFilter]);
+  }, [notes, user?.danhsachKH, user?.danhsachNote, nameFilter]);
 
   useEffect(() => {
     setIsFil(!!nameFilter);
@@ -308,7 +340,9 @@ const Home = () => {
                   </div>
                 </div>
               ) : (
-                <Detailcard data={listByKH.loc} />
+                listByKH.loc.map(({ kh, data }) => (
+                  <Detailcard key={kh.id} data={data} KH={kh} />
+                ))
               )}
             </div>
           </div>

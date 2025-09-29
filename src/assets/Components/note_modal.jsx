@@ -39,9 +39,9 @@ const NoteModal = ({
     });
     if (mode === "edit") {
       form.setFieldsValue({
-        category: data.phanloai ?? "in",
-        soluong: data.quantity ?? 0,
-        dongia: data.unitPrice ?? 0,
+        phanloai: data.phanloai ?? "in",
+        soluong: data.soluong ?? 0,
+        dongia: data.dongia ?? 0,
         money: data.sotien ?? 0,
         note: data.noidung ?? "",
       });
@@ -67,9 +67,9 @@ const NoteModal = ({
         thoigian: values.date
           ? dayjs(values.date).format("YYYY-MM-DDTHH:mm:ss")
           : null,
-        phanloai: values.category,
-        soluong: values.quantity ?? 0,
-        dongia: values.unitPrice ?? 0,
+        phanloai: values.phanloai,
+        soluong: values.soluong ?? 0,
+        dongia: values.dongia ?? 0,
         sotien: values.money ?? 0,
         noidung: values.note ?? "",
       };
@@ -159,7 +159,7 @@ const NoteModal = ({
             <FaArrowLeft className="text-gray-700" />
           </button>
           <div className="text-xl font-semibold border-b-amber-100">
-            {mode === "add" ? "Thêm mới" : `Chỉnh sửa #${data?.id ?? ""}`}
+            {mode === "add" ? "Thêm mới" : `Chỉnh sửa #${data?.hoten ?? ""}`}
           </div>
           <div className="w-10" /> {/* giữ cân đối */}
         </div>

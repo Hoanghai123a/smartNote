@@ -20,6 +20,8 @@ import api from "../../assets/Components/api";
 import { FaThumbtackSlash } from "react-icons/fa6";
 import { FiMenu } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
+import NoteForm from "../../assets/Components/note_form";
+import FieldPhone from "../../assets/Components/fields/phone";
 
 const Detail = ({ data }) => {
   const { user, setUser } = useUser();
@@ -208,8 +210,16 @@ const Detail = ({ data }) => {
           >
             <IoChevronBack className="text-xl" />
           </button>
-          <div className="flex-1 text-center text-lg font-semibold">
-            {data?.hoten || "No Name"}
+          <div className="flex-1 text-center">
+            <div className="text-lg font-semibold">
+              {data?.hoten || "No Name"}
+            </div>
+            <div className="flex justify-center mt-2">
+              <FieldPhone
+                data={data?.sodienthoai || ""}
+                className=" text-ml"
+              ></FieldPhone>
+            </div>
           </div>
 
           {/* Dropdown Menu */}
@@ -248,7 +258,21 @@ const Detail = ({ data }) => {
           </div>
           <div className="text-center">
             <div className="text-sm text-gray-600">Tồn</div>
-            <div className="text-blue-600 font-semibold">{money(ton)}</div>
+            <div className="flex items-center justify-center font-semibold">
+              {ton > 0 ? (
+                <>
+                  <FaArrowUp className="text-emerald-600 mr-1" />
+                  <span className="">{money(ton)}</span>
+                </>
+              ) : ton < 0 ? (
+                <>
+                  <FaArrowDown className="text-rose-500 mr-1" />
+                  <span className="">{money(Math.abs(ton))}</span>
+                </>
+              ) : (
+                <span className="text-gray-500">{money(0)}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -310,7 +334,7 @@ const Detail = ({ data }) => {
             </div>
 
             {/* Preview 3 bản ghi - click mở modal */}
-            <div className="cursor-pointer" onClick={() => setOpenDay(day)}>
+            <div className="cursor-pointer">
               {day.list.slice(0, 3).map((it, idx) => {
                 const soluong = Number(it?.soluong) || 0;
                 const dongia = Number(it?.dongia) || 0;
@@ -318,9 +342,11 @@ const Detail = ({ data }) => {
                 const isIn = String(it?.phanloai || "").toLowerCase() === "in";
 
                 return (
-                  <div
+                  <NoteModal
                     key={idx}
-                    className="flex items-center px-4 py-1 text-sm ml-3 hover:bg-gray-50"
+                    className="flex items-center w-[95%] px-4 py-1 text-sm ml-3 hover:bg-gray-50"
+                    mode="edit"
+                    data={{ ...it, thoigian: day.key, khachhang: data.hoten }}
                   >
                     <div className="basis-20 shrink-0 font-medium">
                       Lần {idx + 1}
@@ -336,11 +362,14 @@ const Detail = ({ data }) => {
                       )}
                       <div>{money(amount)}</div>
                     </div>
-                  </div>
+                  </NoteModal>
                 );
               })}
               {day.list.length > 3 && (
-                <div className="px-4 py-2 text-center text-blue-600 text-sm">
+                <div
+                  className="px-4 py-2 text-center text-blue-600 text-sm"
+                  onClick={() => setOpenDay(day)}
+                >
                   Xem thêm {day.list.length - 3} giao dịch...
                 </div>
               )}
@@ -352,7 +381,7 @@ const Detail = ({ data }) => {
       {/* Floating Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 z-15">
         <NoteModal mode="add" data={data}>
-          <div className="!w-[95vw] py-3 rounded-xl bg-blue-500 !text-white font-semibold shadow-lg active:scale-95 flex items-center justify-center gap-2">
+          <div className="!w-[92vw] py-3 rounded-xl bg-blue-500 !text-white font-semibold shadow-lg active:scale-95 flex items-center justify-center gap-2">
             <IoAddCircleOutline className="text-white w-6 h-6" />
             Thêm bản ghi mới
           </div>

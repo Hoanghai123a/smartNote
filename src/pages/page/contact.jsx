@@ -64,11 +64,15 @@ const Contact = ({ children }) => {
           <div className="flex justify-center">
             <div className="relative">
               <Image
-                className="rounded-2xl shadow-xl"
-                width={150}
-                height={150}
+                preview={false}
                 alt="Avatar"
                 src={preview || cuphong}
+                className="rounded-2xl shadow-xl object-cover"
+                style={{
+                  width: 150,
+                  height: 150,
+                  objectFit: "cover", // fix méo
+                }}
               />
               <button
                 type="button"

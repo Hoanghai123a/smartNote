@@ -11,16 +11,16 @@ import CustomerSelect from "./customer_select";
 const STRIP_QTY_PRICE = /\s*SL:\s*\d+(?:[.,]\d+)?;\s*ĐG:\s*[\d.,]+₫\./;
 
 const NoteForm = ({ form, user, onSubmit }) => {
-  const quantity = Form.useWatch("quantity", form);
-  const unitPrice = Form.useWatch("unitPrice", form);
-  const category = Form.useWatch("category", form);
+  const soluong = Form.useWatch("soluong", form);
+  const dongia = Form.useWatch("dongia", form);
+  const phanloai = Form.useWatch("phanloai", form);
 
   const [openDate, setOpenDate] = useState(false);
 
   // đồng bộ money + note khi bật expandCalc
   useEffect(() => {
-    const q = Number(quantity);
-    const p = Number(unitPrice);
+    const q = Number(soluong);
+    const p = Number(dongia);
     if (!Number.isFinite(q) || !Number.isFinite(p)) return;
 
     const total = q * p;
@@ -29,7 +29,7 @@ const NoteForm = ({ form, user, onSubmit }) => {
     const extraNote = ` SL: ${q}; ĐG: ${p.toLocaleString("vi-VN")}₫.`;
 
     form.setFieldsValue({ money: total, note: (base + extraNote).trim() });
-  }, [quantity, unitPrice, form]);
+  }, [soluong, dongia, form]);
 
   return (
     <Form
@@ -37,7 +37,7 @@ const NoteForm = ({ form, user, onSubmit }) => {
       layout="horizontal"
       initialValues={{
         date: dayjs().toDate(),
-        category: "in",
+        phanloai: "in",
         money: null,
       }}
       onFinish={onSubmit}
@@ -94,33 +94,33 @@ const NoteForm = ({ form, user, onSubmit }) => {
 
       {/* Loại hình toggle */}
       <Form.Item label="Loại hình" required>
-        <Form.Item name="category" noStyle>
+        <Form.Item name="phanloai" noStyle>
           <Button
             type="default"
             className={`min-w-25 ...`}
             onClick={() =>
               form.setFieldsValue({
-                category: category === "in" ? "out" : "in",
+                phanloai: phanloai === "in" ? "out" : "in",
               })
             }
           >
             <FaArrowDown
               className={`transition-transform duration-300 ${
-                category === "in" ? "text-green-600" : "text-red-500 rotate-180"
+                phanloai === "in" ? "text-green-600" : "text-red-500 rotate-180"
               }`}
             />
-            {category === "in" ? "Thu về" : "Chi ra"}
+            {phanloai === "in" ? "Thu về" : "Chi ra"}
           </Button>
         </Form.Item>
       </Form.Item>
 
       {/* Số lượng */}
-      <Form.Item label="Số lượng" name="quantity">
+      <Form.Item label="Số lượng" name="soluong">
         <InputNumber className="!min-w-35 !max-w-50 rounded-lg shadow-md !text-center" />
       </Form.Item>
 
       {/* Đơn giá */}
-      <Form.Item label="Đơn giá" name="unitPrice">
+      <Form.Item label="Đơn giá" name="dongia">
         <InputNumber
           className="!min-w-45 !max-w-50 rounded-xl shadow-md"
           formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}

@@ -19,15 +19,25 @@ const DetailPage = () => {
   // fetch thêm nếu KH chưa có trong context
   useEffect(() => {
     const fetchKH = async () => {
-      if (!id || KH) return;
+      if (!id || KH) return; // nếu đã có KH trong context thì không fetch lại
       try {
         setLoading(true);
         const res = await api.get(`/khachhang/${id}/`, user?.token);
         if (res) {
-          setUser((old) => ({
-            ...old,
-            danhsachKH: [...(old?.danhsachKH || []), res],
-          }));
+          setUser((old) => {
+            // kiểm tra xem KH đã tồn tại chưa
+            const exists = (old?.danhsachKH || []).some(
+              (kh) => String(kh.id) === String(res.id)
+            );
+            return {
+              ...old,
+              danhsachKH: exists
+                ? old.danhsachKH.map((kh) =>
+                    String(kh.id) === String(res.id) ? { ...kh, ...res } : kh
+                  )
+                : [...(old?.danhsachKH || []), res],
+            };
+          });
         }
       } catch (err) {
         console.error("❌ Lỗi load KH:", err);
@@ -36,6 +46,7 @@ const DetailPage = () => {
         setLoading(false);
       }
     };
+
     fetchKH();
   }, [id, KH, user?.token, setUser]);
 

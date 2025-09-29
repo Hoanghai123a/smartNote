@@ -45,6 +45,8 @@ const Payment = ({ children, id, sotien = 0 }) => {
             thoigian: dayjs().toISOString(),
             loai: null,
             phanloai: Number(sotien) < 0 ? "in" : "out",
+            soluong: 1,
+            dongia: Math.abs(Number(sotien)) || 0,
             sotien: Math.abs(Number(sotien)) || 0,
             trangthai: "done",
             noidung: "tất toán",
