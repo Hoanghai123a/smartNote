@@ -2,22 +2,22 @@ import { message } from "antd";
 import axios from "axios";
 
 const key = import.meta.env.VITE_KEY;
-// const author = import.meta.env.VITE_AUTHOR;
-// const version = import.meta.env.VITE_VERSION;
-const host = import.meta.env.VITE_HOST;
-const DEFAULT_DEBOUNCE_DELAY = 100;
 const debugMode = import.meta.env.VITE_DEBUGMODE === "development";
 
+// ⚡ Dùng api.ipays.vn làm baseURL
 const api = axios.create({
-  baseURL: host + "note",
+  baseURL: "https://api.ipays.vn/note/",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
 const abortControllers = {};
 const debounceTimers = {};
 const DEFAULT_DELAY = 100;
+
+// ----- Interceptors -----
 api.interceptors.request.use(
   (config) => {
     config.metadata = { startTime: new Date() };
@@ -28,6 +28,7 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
 api.interceptors.response.use(
   (response) => {
     const start = response.config.metadata?.startTime;
@@ -42,6 +43,7 @@ api.interceptors.response.use(
     const url = config.url || "unknown";
     const start = config.metadata?.startTime;
     const duration = start ? new Date() - start : "N/A";
+
     if (axios.isCancel(error)) {
       if (debugMode) {
         console.warn(`⚠️ [CANCELLED] ${url} after ${duration} ms`);
@@ -58,6 +60,7 @@ api.interceptors.response.use(
   }
 );
 
+// ----- Helpers -----
 function clearPrevious(url) {
   if (debounceTimers[url]) clearTimeout(debounceTimers[url]);
   if (abortControllers[url]) {
@@ -74,7 +77,7 @@ function buildHeaders(token, extraHeaders = {}) {
   };
 }
 
-// 📌 Debounce GET with token
+// ----- Debounce methods -----
 export const debounceGet = (url, token, delay = DEFAULT_DELAY) => {
   clearPrevious(url);
   return new Promise((resolve, reject) => {
@@ -98,15 +101,12 @@ export const debounceGet = (url, token, delay = DEFAULT_DELAY) => {
   });
 };
 
-// 📌 Debounce GET with custom headers
 export const debounceGets = (url, headers, delay = DEFAULT_DELAY) => {
   clearPrevious(url);
-
   return new Promise((resolve, reject) => {
     debounceTimers[url] = setTimeout(async () => {
       const controller = new AbortController();
       abortControllers[url] = controller;
-
       try {
         const response = await api.get(url, {
           signal: controller.signal,
@@ -124,15 +124,12 @@ export const debounceGets = (url, headers, delay = DEFAULT_DELAY) => {
   });
 };
 
-// 📌 Debounce POST
 export const debouncePost = (url, data, token, delay = DEFAULT_DELAY) => {
   clearPrevious(url);
-
   return new Promise((resolve, reject) => {
     debounceTimers[url] = setTimeout(async () => {
       const controller = new AbortController();
       abortControllers[url] = controller;
-
       try {
         const response = await api.post(url, data, {
           signal: controller.signal,
@@ -150,7 +147,6 @@ export const debouncePost = (url, data, token, delay = DEFAULT_DELAY) => {
   });
 };
 
-// 📌 Debounce PATCH
 export const debouncePatch = (url, data, token, delay = DEFAULT_DELAY) => {
   clearPrevious(url);
   return new Promise((resolve, reject) => {
@@ -174,15 +170,12 @@ export const debouncePatch = (url, data, token, delay = DEFAULT_DELAY) => {
   });
 };
 
-// 📌 Debounce DELETE
 export const debounceDelete = (url, token, delay = DEFAULT_DELAY) => {
   clearPrevious(url);
-
   return new Promise((resolve, reject) => {
     debounceTimers[url] = setTimeout(async () => {
       const controller = new AbortController();
       abortControllers[url] = controller;
-
       try {
         const response = await api.delete(url, {
           signal: controller.signal,
@@ -199,6 +192,8 @@ export const debounceDelete = (url, token, delay = DEFAULT_DELAY) => {
     }, delay);
   });
 };
+
+// ----- Error handler -----
 const error = (e) => {
   message.error(
     e?.response?.data?.detail ||
@@ -208,11 +203,14 @@ const error = (e) => {
       "Có lỗi xảy ra!"
   );
 };
+
+// ----- Cookie & Token utils -----
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(";").shift();
 }
+
 function setCookie(name, value, seconds) {
   let expires = "";
   if (seconds) {
@@ -222,9 +220,11 @@ function setCookie(name, value, seconds) {
     value || ""
   }${expires}; path=/; Secure; SameSite=None`;
 }
+
 function removeCookie(name) {
   document.cookie = `${name}=; Max-Age=0; path=/`;
 }
+
 function saveToken(token) {
   localStorage.setItem("token", token);
 }
@@ -236,6 +236,8 @@ function getToken() {
 function removeToken() {
   localStorage.removeItem("token");
 }
+
+// ----- Export -----
 export default {
   saveToken,
   getToken,

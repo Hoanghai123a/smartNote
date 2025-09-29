@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import "antd/dist/reset.css";
 import api from "../assets/Components/api";
-import { Button, message, Select, Spin } from "antd";
+import { message, Select, Spin } from "antd";
 import {
   FaPlus,
   FaRegUser,
@@ -18,18 +18,18 @@ import {
   FaPowerOff,
   FaBookOpen,
 } from "react-icons/fa";
-import { TiThMenuOutline } from "react-icons/ti";
 import { MdOutlinePushPin } from "react-icons/md";
 import Detailcard from "../assets/Components/detailcard";
 import { useEnrichedNotes } from "../assets/Components/add_field_note";
 import { BsListCheck } from "react-icons/bs";
 import NoteModal from "../assets/Components/note_modal";
-import { IoMdClose } from "react-icons/io";
 import { useUser } from "../stores/userContext";
 import ClientManager from "../assets/Components/client";
 import ChangePass from "../assets/Components/change_pass";
 import About from "./page/info";
 import Contact from "./page/contact";
+import { FiMenu } from "react-icons/fi";
+import { IoMdClose } from "react-icons/io";
 
 const Home = () => {
   const nav = useNavigate();
@@ -50,6 +50,11 @@ const Home = () => {
         nav("/login", { replace: true });
         return;
       }
+
+      if (user?.token !== token) {
+        setUser((old) => ({ ...old, token }));
+      }
+
       const me = await api.get(`/user`, token);
       const [notesRes, khRes, groupRes] = await Promise.all([
         api.get(`/notes/?page_size=99999`, token),
@@ -69,6 +74,7 @@ const Home = () => {
       }
     } catch (e) {
       console.error("checkApi error:", e);
+      nav("/login", { replace: true });
     } finally {
       mountedRef.current && setLoading(false);
     }
@@ -146,7 +152,9 @@ const Home = () => {
 
   useEffect(() => {
     mountedRef.current = true;
-    checkApi();
+    if (!user?.danhsachKH?.length || !user?.danhsachNote?.length) {
+      checkApi();
+    }
     return () => {
       mountedRef.current = false;
     };
@@ -255,7 +263,7 @@ const Home = () => {
                   {openMenu ? (
                     <IoMdClose className="w-7 h-7 text-[red]" />
                   ) : (
-                    <TiThMenuOutline className="w-7 h-7" />
+                    <FiMenu className="w-7 h-7" />
                   )}
                 </div>
               </div>

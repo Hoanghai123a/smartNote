@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { IoChevronBack, IoClose, IoAddCircleOutline } from "react-icons/io5";
+import { IoChevronBack, IoAddCircleOutline } from "react-icons/io5";
 
 // Font Awesome
 import {
@@ -11,8 +11,6 @@ import {
   FaMoneyCheckAlt,
 } from "react-icons/fa";
 
-import { TiThMenuOutline } from "react-icons/ti";
-
 import { Dropdown, message } from "antd";
 
 import NoteModal from "../../assets/Components/note_modal";
@@ -20,6 +18,8 @@ import Payment from "../../assets/Components/payment";
 import { useUser } from "../../stores/userContext";
 import api from "../../assets/Components/api";
 import { FaThumbtackSlash } from "react-icons/fa6";
+import { FiMenu } from "react-icons/fi";
+import { IoMdClose } from "react-icons/io";
 
 const Detail = ({ data }) => {
   const { user, setUser } = useUser();
@@ -146,8 +146,8 @@ const Detail = ({ data }) => {
       <div className="fixed inset-0 bg-black/40 z-[9999] flex justify-center items-center">
         <div className="bg-white max-w-2xl w-full max-h-[90vh] rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="flex justify-between items-center px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold">{day.label}</h2>
+          <div className="flex justify-between items-center px-6 py-2">
+            <h2 className="text-lg !font-semibold">{day.label}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-red-500 text-2xl font-bold"
@@ -157,7 +157,7 @@ const Detail = ({ data }) => {
           </div>
 
           {/* Content */}
-          <div className="p-4 overflow-y-auto max-h-[75vh]">
+          <div className="px-4 overflow-y-auto max-h-[75vh]">
             {day.list.length === 0 && (
               <div className="text-center text-gray-400 py-6">
                 Không có giao dịch trong ngày này.
@@ -170,11 +170,8 @@ const Detail = ({ data }) => {
               const isIn = String(it?.phanloai || "").toLowerCase() === "in";
 
               return (
-                <div
-                  key={idx}
-                  className="flex items-center px-4 py-2 border-b last:border-0 text-sm"
-                >
-                  <div className="basis-20 shrink-0 font-medium">
+                <div key={idx} className="flex items-center px-4 py-2 text-sm">
+                  <div className="basis-20 shrink-0 font-medium ml-6">
                     Lần {idx + 1}
                   </div>
                   <div className="flex-1 text-gray-500 text-center">
@@ -231,9 +228,9 @@ const Detail = ({ data }) => {
               className="cursor-pointer hover:bg-gray-100 rounded-full p-1"
             >
               {openMenu ? (
-                <IoClose className="w-7 h-7 text-[red]" />
+                <IoMdClose className="w-7 h-7 text-[red]" />
               ) : (
-                <TiThMenuOutline className="w-7 h-7" />
+                <FiMenu className="w-7 h-7" />
               )}
             </div>
           </Dropdown>
