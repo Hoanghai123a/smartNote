@@ -16,7 +16,7 @@ const About = ({ children }) => {
       {open &&
         createPortal(
           <div className="fixed inset-0 bg-black/40 z-[9999] flex justify-center items-center">
-            <div className="bg-white max-w-4xl w-full max-h-[90vh] rounded-xl shadow-lg">
+            <div className="bg-white max-w-[95vw] w-full max-h-[90vh] rounded-xl shadow-lg">
               {/* Header */}
               <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
                 <h1 className="text-xl font-semibold">

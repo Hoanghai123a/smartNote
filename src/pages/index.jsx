@@ -43,6 +43,14 @@ const Home = () => {
 
   // check token + load dữ liệu
   const checkApi = async () => {
+    function mergeById(oldArr = [], newArr = [], key = "id") {
+      const map = new Map();
+      [...oldArr, ...newArr].forEach((item) => {
+        map.set(String(item[key]), { ...map.get(String(item[key])), ...item });
+      });
+      return Array.from(map.values());
+    }
+
     setLoading(true);
     try {
       const token = api.getCookie("token");
@@ -66,11 +74,16 @@ const Home = () => {
           ...old,
           ...me,
           token,
-          danhsachNote: notesRes?.results || [],
-          danhsachKH: khRes?.results || [],
-          danhsachGroup: groupRes?.results || [],
+          danhsachNote: notesRes?.results?.length
+            ? mergeById(old?.danhsachNote, notesRes.results, "id")
+            : old?.danhsachNote || [],
+          danhsachKH: khRes?.results?.length
+            ? mergeById(old?.danhsachKH, khRes.results, "id")
+            : old?.danhsachKH || [],
+          danhsachGroup: groupRes?.results?.length
+            ? mergeById(old?.danhsachGroup, groupRes.results, "id")
+            : old?.danhsachGroup || [],
         }));
-        console.log("danhsachKH", khRes?.results);
       }
     } catch (e) {
       console.error("checkApi error:", e);
@@ -103,48 +116,29 @@ const Home = () => {
     return uniq.map((u) => ({ label: u.hoten, value: String(u?.id ?? "") }));
   }, [user?.danhsachKH]);
 
-  const notes = useEnrichedNotes();
-
   // ✅ phân loại KH theo ghim
   const listByKH = useMemo(() => {
-    if (
-      !Array.isArray(user?.danhsachKH) ||
-      !Array.isArray(user?.danhsachNote)
-    ) {
-      return { ghim: [], thuong: [], loc: [] };
-    }
+    if (!user?.danhsachKH?.length) return { ghim: [], thuong: [], loc: [] };
 
-    const validNotes = notes.filter((n) => n.trangthai === "not");
-
-    // nhóm notes theo KH
-    const notesByKH = {};
-    validNotes.forEach((n) => {
+    const notesByKH = user.danhsachNote.reduce((acc, n) => {
+      if (n.trangthai !== "not") return acc;
       const id = String(n.khachhang);
-      if (!notesByKH[id]) notesByKH[id] = [];
-      notesByKH[id].push(n);
-    });
+      if (!acc[id]) acc[id] = [];
+      acc[id].push(n);
+      return acc;
+    }, {});
 
-    const ghim = [];
-    const thuong = [];
-    const loc = [];
-
-    (user?.danhsachKH || []).forEach((kh) => {
-      const id = String(kh.id);
-      const data = notesByKH[id] || [];
-
-      if (kh.ghim) {
-        ghim.push({ kh, data });
-      } else {
-        thuong.push({ kh, data });
-      }
-
-      if (nameFilter && String(kh.id) === String(nameFilter)) {
-        loc.push(...data);
-      }
+    const ghim = [],
+      thuong = [],
+      loc = [];
+    user.danhsachKH.forEach((kh) => {
+      const data = notesByKH[kh.id] || [];
+      (kh.ghim ? ghim : thuong).push({ kh, data });
+      if (nameFilter && String(kh.id) === String(nameFilter)) loc.push(...data);
     });
 
     return { ghim, thuong, loc };
-  }, [notes, user?.danhsachKH, user?.danhsachNote, nameFilter]);
+  }, [user?.danhsachKH, user?.danhsachNote, nameFilter]);
 
   useEffect(() => {
     setIsFil(!!nameFilter);
