@@ -62,7 +62,6 @@ const Home = () => {
       if (user?.token !== token) {
         setUser((old) => ({ ...old, token }));
       }
-
       const me = await api.get(`/user`, token);
       const [notesRes, khRes, groupRes] = await Promise.all([
         api.get(`/notes/?page_size=99999`, token),
@@ -75,8 +74,12 @@ const Home = () => {
           ...me,
           token,
           danhsachNote: notesRes?.results?.length
-            ? mergeById(old?.danhsachNote, notesRes.results, "id")
-            : old?.danhsachNote || [],
+            ? mergeById(
+                old?.danhsachNote,
+                notesRes.results.filter((n) => n.trangthai === "not"),
+                "id"
+              )
+            : old?.danhsachNote?.filter((n) => n.trangthai === "not") || [],
           danhsachKH: khRes?.results?.length
             ? mergeById(old?.danhsachKH, khRes.results, "id")
             : old?.danhsachKH || [],

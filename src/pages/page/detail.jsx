@@ -1,37 +1,157 @@
 import React, { useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-
 import { IoChevronBack, IoAddCircleOutline } from "react-icons/io5";
-
-// Font Awesome
 import {
   FaArrowUp,
   FaArrowDown,
   FaThumbtack,
   FaMoneyCheckAlt,
 } from "react-icons/fa";
-
 import { Dropdown, message } from "antd";
+import { FaThumbtackSlash } from "react-icons/fa6";
+import { FiMenu } from "react-icons/fi";
+import { IoIosArrowDown, IoMdClose } from "react-icons/io";
 
 import NoteModal from "../../assets/Components/note_modal";
 import Payment from "../../assets/Components/payment";
 import { useUser } from "../../stores/userContext";
 import api from "../../assets/Components/api";
-import { FaThumbtackSlash } from "react-icons/fa6";
-import { FiMenu } from "react-icons/fi";
-import { IoMdClose } from "react-icons/io";
-import NoteForm from "../../assets/Components/note_form";
 import FieldPhone from "../../assets/Components/fields/phone";
+import { MdOutlineArrowDropDown } from "react-icons/md";
 
-const Detail = ({ data }) => {
-  const { user, setUser } = useUser();
-  const [openDay, setOpenDay] = useState(null);
-  const [openMenu, setOpenMenu] = useState(false);
+// ----------------- Component con cho từng ngày -----------------
+const DayBlock = ({ day, data }) => {
+  const [expanded, setExpanded] = useState(false);
 
-  const items = Array.isArray(data?.transactions) ? data.transactions : [];
+  const renderList = expanded ? day.list : day.list.slice(0, 3);
 
   const money = (n) => `${(Number(n) || 0).toLocaleString("vi-VN")}đ`;
   const unitMoney = (n) => (Number(n) || 0).toLocaleString("vi-VN") + "đ";
+
+  return (
+    <div className="bg-white rounded-2xl shadow mb-4">
+      {/* Header ngày */}
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-3">
+          <span className="font-semibold">{day.label}</span>
+          {(() => {
+            let sum = 0;
+            for (const it of day.list) {
+              const amount =
+                Number(it?.sotien ?? (it?.soluong ?? 0) * (it?.dongia ?? 0)) ||
+                0;
+              const type = String(it?.phanloai || "").toLowerCase();
+              if (type === "in") sum += amount;
+              else if (type === "out") sum -= amount;
+            }
+            if (sum > 0) {
+              return (
+                <span className="flex items-center font-medium text-[12px] text-gray-400">
+                  <FaArrowUp className="mr-1 text-emerald-600" /> {money(sum)}
+                </span>
+              );
+            } else if (sum < 0) {
+              return (
+                <span className="flex items-center font-medium text-[12px] text-gray-400">
+                  <FaArrowDown className="mr-1 text-rose-500" />{" "}
+                  {money(Math.abs(sum))}
+                </span>
+              );
+            } else {
+              return (
+                <span className="text-gray-400 font-medium text-[12px]">
+                  {money(sum)}
+                </span>
+              );
+            }
+          })()}
+        </div>
+
+        {/* nút thêm */}
+        <NoteModal mode="add" data={{ ...data, thoigian: day.key }}>
+          <div
+            className="!text-[#0084FF] !text-xl leading-none"
+            aria-label="Thêm"
+            title="Thêm bản ghi mới"
+          >
+            +
+          </div>
+        </NoteModal>
+      </div>
+
+      {/* Danh sách bản ghi */}
+      {renderList.map((it, idx) => {
+        const soluong = Number(it?.soluong) || 0;
+        const dongia = Number(it?.dongia) || 0;
+        const amount = Number(it?.sotien ?? soluong * dongia) || 0;
+        const isIn = String(it?.phanloai || "").toLowerCase() === "in";
+
+        return (
+          <NoteModal
+            key={idx}
+            className="w-[95%] px-4 py-2 text-sm ml-3 hover:bg-gray-50 rounded-md"
+            mode="edit"
+            data={{ ...it, thoigian: day.key, khachhang: data.hoten }}
+          >
+            {/* Dòng chính */}
+            <div className="flex items-center">
+              <div className="basis-20 shrink-0 font-medium">Lần {idx + 1}</div>
+              <div className="flex-1 text-gray-500 text-center">
+                {soluong} × {unitMoney(dongia)}
+              </div>
+              <div className="basis-28 shrink-0 flex items-center justify-end gap-1">
+                {isIn ? (
+                  <FaArrowUp className="text-emerald-600" />
+                ) : (
+                  <FaArrowDown className="text-rose-500" />
+                )}
+                <div>{money(amount)}</div>
+              </div>
+            </div>
+
+            {/* Dòng phụ: chỉ hiển thị nội dung */}
+            {it?.noidung && (
+              <div className="text-gray-400 italic mt-1 text-start ml-7">
+                {it.noidung.replace(/SL:\s*[^;]*;\s*ĐG:\s*[^₫]*₫\.?\s*/g, "")}
+              </div>
+            )}
+          </NoteModal>
+        );
+      })}
+
+      {/* Nút mở rộng / thu gọn */}
+      {day.list.length > 3 && (
+        <div
+          className="px-4 py-2 text-center text-[#43a4ff] text-sm cursor-pointer flex items-center justify-center gap-1"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? (
+            <>
+              <MdOutlineArrowDropDown className="transform rotate-180 text-lg" />
+              <span>Thu gọn</span>
+            </>
+          ) : (
+            <>
+              <MdOutlineArrowDropDown className="text-lg" />
+              <span>Xem thêm {day.list.length - 3} giao dịch</span>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+// ---------------------------------------------------------------
+
+const Detail = ({ data }) => {
+  const { user, setUser } = useUser();
+  const [openMenu, setOpenMenu] = useState(false);
+
+  const items = useMemo(() => {
+    if (!Array.isArray(data?.transactions)) return [];
+    return data.transactions.filter((it) => it?.trangthai === "not");
+  }, [data?.transactions]);
+
+  const money = (n) => `${(Number(n) || 0).toLocaleString("vi-VN")}đ`;
 
   const { thuVe, chiRa, ton } = useMemo(() => {
     let inSum = 0,
@@ -46,10 +166,10 @@ const Detail = ({ data }) => {
     return { thuVe: inSum, chiRa: outSum, ton: inSum - outSum };
   }, [items]);
 
-  // Hàm ghim
+  // Hàm ghim KH
   const handleGhim = async () => {
     try {
-      const newValue = !data.ghim; // đảo trạng thái hiện tại
+      const newValue = !data.ghim;
       const res = await api.patch(
         `/khachhang/${data.id}/`,
         { ghim: newValue },
@@ -72,7 +192,7 @@ const Detail = ({ data }) => {
     }
   };
 
-  // Danh sách menu
+  // menu dropdown
   const menuItems = [
     {
       key: "ghim",
@@ -102,6 +222,7 @@ const Detail = ({ data }) => {
     },
   ];
 
+  // Gom giao dịch theo ngày
   const groupedDays = useMemo(() => {
     const pickDate = (it) => it?.thoigian;
     const map = new Map();
@@ -140,64 +261,6 @@ const Detail = ({ data }) => {
     return days;
   }, [items]);
 
-  // ---------------- Modal gộp trong file ----------------
-  const DayTransactionsModal = ({ open, onClose, day }) => {
-    if (!open || !day) return null;
-
-    return createPortal(
-      <div className="fixed inset-0 bg-black/40 z-[9999] flex justify-center items-center">
-        <div className="bg-white max-w-2xl w-full max-h-[90vh] rounded-xl shadow-lg overflow-hidden">
-          {/* Header */}
-          <div className="flex justify-between items-center px-6 py-2">
-            <h2 className="text-lg !font-semibold">{day.label}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-red-500 text-2xl font-bold"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="px-4 overflow-y-auto max-h-[75vh]">
-            {day.list.length === 0 && (
-              <div className="text-center text-gray-400 py-6">
-                Không có giao dịch trong ngày này.
-              </div>
-            )}
-            {day.list.map((it, idx) => {
-              const soluong = Number(it?.soluong) || 0;
-              const dongia = Number(it?.dongia) || 0;
-              const amount = Number(it?.sotien ?? soluong * dongia) || 0;
-              const isIn = String(it?.phanloai || "").toLowerCase() === "in";
-
-              return (
-                <div key={idx} className="flex items-center px-4 py-2 text-sm">
-                  <div className="basis-20 shrink-0 font-medium ml-6">
-                    Lần {idx + 1}
-                  </div>
-                  <div className="flex-1 text-gray-500 text-center">
-                    {soluong} × {unitMoney(dongia)}
-                  </div>
-                  <div className="basis-28 shrink-0 flex items-center justify-end gap-1">
-                    {isIn ? (
-                      <FaArrowUp className="text-emerald-600" />
-                    ) : (
-                      <FaArrowDown className="text-rose-500" />
-                    )}
-                    <div>{money(amount)}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>,
-      document.body
-    );
-  };
-  // ------------------------------------------------------
-
   return (
     <div className="relative !h-screen flex flex-col bg-gray-50">
       {/* Header */}
@@ -215,10 +278,7 @@ const Detail = ({ data }) => {
               {data?.hoten || "No Name"}
             </div>
             <div className="flex justify-center mt-2">
-              <FieldPhone
-                data={data?.sodienthoai || ""}
-                className=" text-ml"
-              ></FieldPhone>
+              <FieldPhone data={data?.sodienthoai || ""} className="text-ml" />
             </div>
           </div>
 
@@ -228,9 +288,7 @@ const Detail = ({ data }) => {
             trigger={["click"]}
             open={openMenu}
             onOpenChange={(flag) => {
-              if (flag) {
-                setOpenMenu(true);
-              }
+              if (flag) setOpenMenu(true);
             }}
           >
             <div
@@ -262,12 +320,12 @@ const Detail = ({ data }) => {
               {ton > 0 ? (
                 <>
                   <FaArrowUp className="text-emerald-600 mr-1" />
-                  <span className="">{money(ton)}</span>
+                  <span>{money(ton)}</span>
                 </>
               ) : ton < 0 ? (
                 <>
                   <FaArrowDown className="text-rose-500 mr-1" />
-                  <span className="">{money(Math.abs(ton))}</span>
+                  <span>{money(Math.abs(ton))}</span>
                 </>
               ) : (
                 <span className="text-gray-500">{money(0)}</span>
@@ -280,101 +338,7 @@ const Detail = ({ data }) => {
       {/* Chi tiết theo ngày */}
       <div className="flex-1 overflow-y-auto space-y-4 p-4 pb-24 z-5">
         {groupedDays.map((day) => (
-          <div key={day.key} className="bg-white rounded-2xl shadow">
-            <div className="flex items-center justify-between px-4 py-2">
-              {/* Bên trái: Ngày + tổng tiền */}
-              <div className="flex items-center gap-3">
-                <span className="font-semibold">{day.label}</span>
-                {(() => {
-                  let sum = 0;
-                  for (const it of day.list) {
-                    const amount =
-                      Number(
-                        it?.sotien ?? (it?.soluong ?? 0) * (it?.dongia ?? 0)
-                      ) || 0;
-                    const type = String(it?.phanloai || "").toLowerCase();
-                    if (type === "in") sum += amount;
-                    else if (type === "out") sum -= amount;
-                  }
-
-                  if (sum > 0) {
-                    return (
-                      <span className="flex items-center font-medium text-[12px] text-gray-400">
-                        <FaArrowUp className="mr-1  text-emerald-600" />{" "}
-                        {money(sum)}
-                      </span>
-                    );
-                  } else if (sum < 0) {
-                    return (
-                      <span className="flex items-center font-medium text-[12px] text-gray-400">
-                        <FaArrowDown className="mr-1  text-rose-500" />{" "}
-                        {money(Math.abs(sum))}
-                      </span>
-                    );
-                  } else {
-                    return (
-                      <span className="flex items-center text-gray-400 font-medium text-[12px]">
-                        {money(sum)}
-                      </span>
-                    );
-                  }
-                })()}
-              </div>
-
-              {/* Bên phải: nút thêm */}
-              <NoteModal mode="add" data={{ ...data, thoigian: day.key }}>
-                <div
-                  className="!text-[#0084FF] !text-xl leading-none"
-                  aria-label="Thêm"
-                  title="Thêm bản ghi mới"
-                >
-                  +
-                </div>
-              </NoteModal>
-            </div>
-
-            {/* Preview 3 bản ghi - click mở modal */}
-            <div className="cursor-pointer">
-              {day.list.slice(0, 3).map((it, idx) => {
-                const soluong = Number(it?.soluong) || 0;
-                const dongia = Number(it?.dongia) || 0;
-                const amount = Number(it?.sotien ?? soluong * dongia) || 0;
-                const isIn = String(it?.phanloai || "").toLowerCase() === "in";
-
-                return (
-                  <NoteModal
-                    key={idx}
-                    className="flex items-center w-[95%] px-4 py-1 text-sm ml-3 hover:bg-gray-50"
-                    mode="edit"
-                    data={{ ...it, thoigian: day.key, khachhang: data.hoten }}
-                  >
-                    <div className="basis-20 shrink-0 font-medium">
-                      Lần {idx + 1}
-                    </div>
-                    <div className="flex-1 text-gray-500 text-center">
-                      {soluong} × {unitMoney(dongia)}
-                    </div>
-                    <div className="basis-28 shrink-0 flex items-center justify-end gap-1">
-                      {isIn ? (
-                        <FaArrowUp className="text-emerald-600" />
-                      ) : (
-                        <FaArrowDown className="text-rose-500" />
-                      )}
-                      <div>{money(amount)}</div>
-                    </div>
-                  </NoteModal>
-                );
-              })}
-              {day.list.length > 3 && (
-                <div
-                  className="px-4 py-2 text-center text-blue-600 text-sm"
-                  onClick={() => setOpenDay(day)}
-                >
-                  Xem thêm {day.list.length - 3} giao dịch...
-                </div>
-              )}
-            </div>
-          </div>
+          <DayBlock key={day.key} day={day} data={data} />
         ))}
       </div>
 
@@ -387,13 +351,6 @@ const Detail = ({ data }) => {
           </div>
         </NoteModal>
       </div>
-
-      {/* Modal show toàn bộ giao dịch 1 ngày */}
-      <DayTransactionsModal
-        open={!!openDay}
-        day={openDay}
-        onClose={() => setOpenDay(null)}
-      />
     </div>
   );
 };

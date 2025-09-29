@@ -1,32 +1,38 @@
 import { FaArrowDown, FaPlus } from "react-icons/fa";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import NoteModal from "./note_modal";
-
 import dayjs from "dayjs";
+import DayModal from "./day_modal";
 import { useNavigate } from "react-router-dom";
+
+// Hàm cắt ngày UTC từ ISO string
+const toUTCDateKey = (iso) => {
+  if (!iso) return "unknown";
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(iso);
+  return m ? m[1] : "unknown";
+};
 
 const Detailcard = ({ data = [], KH = [] }) => {
   if (!data || data.length === 0) return null;
-  console.log("data", data);
   const nav = useNavigate();
-  // Gom nhóm theo ngày (yyyy-MM-dd)
+  const [openDay, setOpenDay] = useState(null);
+  const [autoOpenAdd, setAutoOpenAdd] = useState(false);
+
   const grouped = useMemo(() => {
     const map = {};
-
     data.forEach((n) => {
-      const d = dayjs(n.thoigian).format("YYYY-MM-DD");
-      if (!map[d]) map[d] = { date: dayjs(d), total: 0 };
+      const key = toUTCDateKey(n.thoigian);
+      if (!map[key]) map[key] = { key, total: 0, list: [] };
       const val = Number(n.sotien) || 0;
-      map[d].total += n.phanloai === "in" ? val : -val;
+      map[key].total += n.phanloai === "in" ? val : -val;
+      map[key].list.push(n);
     });
-
-    // Lấy top 3 ngày gần nhất có dữ liệu
     return Object.values(map)
-      .sort((a, b) => b.date.valueOf() - a.date.valueOf()) // sort desc
+      .sort((a, b) => new Date(b.key) - new Date(a.key)) // sort desc
       .slice(0, 3)
       .map((g) => ({
         ...g,
-        label: g.date.format("DD/MM"), // label theo ngày/tháng
+        label: g.key !== "unknown" ? dayjs(g.key).format("DD/MM") : "??/??",
       }));
   }, [data]);
 
@@ -40,22 +46,31 @@ const Detailcard = ({ data = [], KH = [] }) => {
         </NoteModal>
       </div>
 
-      {/* Body: 3 ngày gần nhất */}
+      {/* Body: các ngày */}
       {grouped.map((g) => (
         <div
-          key={g.label}
-          className="flex justify-between items-center px-1 py-1 text-gray-600"
+          key={g.key}
+          className="flex items-center justify-between px-1 py-2 text-gray-600 hover:bg-gray-50 rounded-md"
         >
-          <div>{g.label}</div>
+          {/* click vùng này -> mở modal xem */}
           <div
-            className={`flex items-center gap-1 font-medium ${
-              g.total > 0 ? "text-green-600" : "text-red-500"
-            }`}
+            className="flex-1 flex justify-between cursor-pointer"
+            onClick={() => {
+              setOpenDay(g);
+              setAutoOpenAdd(false);
+            }}
           >
-            <FaArrowDown className={g.total > 0 ? "rotate-180" : ""} />
-            <span className="text-black">
-              {Math.abs(g.total).toLocaleString()}đ
-            </span>
+            <div>{g.label}</div>
+            <div
+              className={`flex items-center gap-1 font-medium ${
+                g.total > 0 ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              <FaArrowDown className={g.total > 0 ? "rotate-180" : ""} />
+              <span className="text-black">
+                {Math.abs(g.total).toLocaleString()}đ
+              </span>
+            </div>
           </div>
         </div>
       ))}
@@ -69,6 +84,14 @@ const Detailcard = ({ data = [], KH = [] }) => {
           Xem thêm &gt;&gt;
         </button>
       </div>
+
+      {/* Modal chi tiết ngày */}
+      <DayModal
+        day={openDay}
+        khachhang={KH}
+        autoOpenAdd={autoOpenAdd}
+        onClose={() => setOpenDay(null)}
+      />
     </div>
   );
 };
