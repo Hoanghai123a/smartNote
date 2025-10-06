@@ -123,6 +123,7 @@ const NoteForm = ({ form, user, onSubmit }) => {
       <Form.Item label="Đơn giá" name="dongia">
         <InputNumber
           className="!min-w-45 !max-w-50 rounded-xl shadow-md"
+          step={0.1}
           formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
           parser={(v) => v.replace(/\./g, "")}
         />
@@ -132,6 +133,7 @@ const NoteForm = ({ form, user, onSubmit }) => {
       <Form.Item label="Thành tiền" name="money">
         <InputNumber
           disabled
+          step={0.1}
           className="!min-w-45 !max-w-50 rounded-xl shadow-md"
           formatter={(v) => (v ? `${Number(v).toLocaleString("vi-VN")} đ` : "")}
           parser={(v) => v.replace(/\./g, "")}
