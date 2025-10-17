@@ -274,11 +274,9 @@ const Home = () => {
                   showSearch
                   placeholder="Nhập tên"
                   value={nameFilter}
-                  onChange={setNameFilter}
+                  onChange={(e) => setNameFilter(e)}
                   filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
+                    option?.label?.toLowerCase().includes(input.toLowerCase())
                   }
                   options={userOptions}
                 />
