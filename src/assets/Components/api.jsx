@@ -6,7 +6,8 @@ const debugMode = import.meta.env.VITE_DEBUGMODE === "development";
 
 // ⚡ Dùng api.ipays.vn làm baseURL
 const api = axios.create({
-  baseURL: "https://api.ipays.vn/note/",
+  // baseURL: "https://api.ipays.vn/note/",
+  baseURL: "http://localhost:5001/note/",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

@@ -77,7 +77,6 @@ const DayModal = ({ day, khachhang, onClose, autoOpenAdd = false }) => {
                   <div>{money(amount)}</div>
                 </div>
               </div>
-
               {it?.noidung && (
                 <div className="text-gray-400 italic mt-1 text-start ml-7">
                   {it.noidung.replace(/SL:\s*[^;]*;\s*ĐG:\s*[^₫]*₫\.?\s*/g, "")}

@@ -127,30 +127,38 @@ const NoteModal = ({
       <button type="button" onClick={openModal} className={className}>
         {children}
       </button>
-
       <Modal
         open={isOpen}
         onCancel={() => closeModal}
         closable={false}
         footer={
-          <Button
-            htmlType="button"
-            loading={saving}
-            disabled={saving}
-            onClick={() => form.submit()}
-            className={`w-full !h-11 rounded-xl font-medium !text-lg flex items-center justify-center shadow-md transition-transform
-        ${
-          saving
-            ? "!bg-gray-400 !cursor-not-allowed"
-            : "!bg-[#0084FF] !text-white hover:scale-[1.02]"
-        }`}
-          >
-            {!saving && <IoSaveOutline className="w-6 h-6 mr-2" />}
-            {saving ? "Đang lưu..." : "Lưu lại"}
-          </Button>
+          <div className="flex flex-col gap-1">
+            <Button
+              htmlType="button"
+              loading={saving}
+              disabled={saving}
+              onClick={() => form.submit()}
+              className={`w-full !h-11 rounded-xl font-medium !text-lg flex items-center justify-center shadow-md transition-transform
+              ${
+                saving
+                  ? "!bg-gray-400 !cursor-not-allowed"
+                  : "!bg-[#0084FF] !text-white hover:scale-[1.02]"
+              }`}
+            >
+              {!saving && <IoSaveOutline className="w-6 h-6 mr-2" />}
+              {saving ? "Đang lưu..." : "Lưu lại"}
+            </Button>
+            <Button
+              variant="filled"
+              color="danger"
+              onClick={() => setShowDelete(true)}
+            >
+              Xóa
+            </Button>
+          </div>
         }
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 mb-4">
           <button
             type="button"
             onClick={closeModal}
@@ -158,27 +166,24 @@ const NoteModal = ({
           >
             <FaArrowLeft className="text-gray-700" />
           </button>
-          <div className="text-xl font-semibold border-b-amber-100">
+          <div className="text-[16px] font-semibold border-b-amber-100">
             {mode === "add" ? "Thêm mới" : `Chỉnh sửa #${data?.hoten ?? ""}`}
           </div>
           <div className="w-10" /> {/* giữ cân đối */}
         </div>
         <NoteForm form={form} user={user} onSubmit={handleSave} />
       </Modal>
-
-      {mode === "edit" && (
-        <Modal
-          title="Xóa ghi chú?"
-          open={showDelete}
-          onCancel={() => setShowDelete(false)}
-          okText="Xóa"
-          cancelText="Hủy"
-          okButtonProps={{ danger: true, loading: deleting }}
-          onOk={handleDelete}
-        >
-          Hành động này không thể hoàn tác.
-        </Modal>
-      )}
+      <Modal
+        title="Xóa ghi chú?"
+        open={showDelete}
+        onCancel={() => setShowDelete(false)}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true, loading: deleting }}
+        onOk={handleDelete}
+      >
+        Hành động này không thể hoàn tác.
+      </Modal>
     </>
   );
 };
